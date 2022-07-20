@@ -1,0 +1,68 @@
+plugins {
+    id 'com.android.library'
+    id 'kotlin-android'
+    id 'maven-publish'
+}
+
+android {
+    compileSdk deps.build_versions.compileSdkVersion
+
+    defaultConfig {
+        minSdk deps.build_versions.minSdkVersion
+        targetSdk deps.build_versions.targetSdkVersion
+        versionCode deps.build_versions.versionCode
+        versionName deps.build_versions.versionName
+
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        consumerProguardFiles "consumer-rules.pro"
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+
+    android.libraryVariants.all { variant ->
+        variant.outputs.all { output ->
+            def fileName = "kcamera_v${defaultConfig.versionName}_${variant.buildType.name}.aar"
+            outputFileName = fileName
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+    kotlinOptions {
+        jvmTarget = '1.8'
+    }
+}
+
+dependencies {
+
+    implementation "androidx.appcompat:appcompat:$v_androidx_appcompat"
+    testImplementation "junit:junit:$v_junit"
+    androidTestImplementation "androidx.test.ext:junit:$v_test_ext"
+    androidTestImplementation "androidx.test.espresso:espresso-core:$v_test_espresso_core"
+
+    implementation "io.reactivex.rxjava2:rxjava:$v_rxjava"
+    implementation "io.reactivex.rxjava2:rxandroid:$v_rxandroid"
+}
+
+afterEvaluate {
+    publishing {
+        publications( {
+            release(MavenPublication) {
+                afterEvaluate {
+                    from components.release
+                }
+                // Applies the component for the release build variant.
+                groupId = "sgf"
+                artifactId "kcamera"
+                version "1.0.0"
+            }
+        })
+    }
+}

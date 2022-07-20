@@ -1,0 +1,46 @@
+plugins {
+    id 'com.android.application'
+    id 'org.jetbrains.kotlin.android'
+}
+
+android {
+    compileSdk deps.build_versions.compileSdkVersion
+
+    defaultConfig {
+        applicationId "com.sgf.camera.kcamera"
+        minSdk deps.build_versions.minSdkVersion
+        targetSdk deps.build_versions.targetSdkVersion
+        versionCode deps.build_versions.versionCode
+        versionName deps.build_versions.versionName
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+    kotlinOptions {
+        jvmTarget = '1.8'
+    }
+}
+
+dependencies {
+
+    implementation project(path: ':KCamera')
+//    implementation 'com.github.mm-sgf:KCamera:v1.0.0'
+    implementation "androidx.core:core-ktx:$v_androidx_core_ktx"
+    implementation "androidx.appcompat:appcompat:$v_androidx_appcompat"
+    implementation "com.google.android.material:material:$v_google_material"
+    implementation "androidx.constraintlayout:constraintlayout:$v_androidx_constraint_layout"
+
+    testImplementation "junit:junit:$v_junit"
+    androidTestImplementation "androidx.test.ext:junit:$v_test_ext"
+    androidTestImplementation "androidx.test.espresso:espresso-core:$v_test_espresso_core"
+    debugImplementation 'com.squareup.leakcanary:leakcanary-android:2.7'
+}

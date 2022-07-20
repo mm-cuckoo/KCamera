@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="preview_384">384dp</dimen>
+    <dimen name="preview_288">288dp</dimen>
+    <dimen name="preview_216">216dp</dimen>
+
+    <dimen name="radius_outer">50dp</dimen>
+    <dimen name="radius_inner">30dp</dimen>
+    <dimen name="stroke_width">2dp</dimen>
+</resources>
