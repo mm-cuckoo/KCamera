@@ -22,6 +22,10 @@ object ConfigKey {
 
     private val configMap = mutableMapOf<String, Any>()
 
+    init {
+        configMap[SHOW_PRE_YUV] = true
+    }
+
 
     fun pushBoolean(key: String, value : Boolean) {
         KLog.d("key:$key   value:$value")

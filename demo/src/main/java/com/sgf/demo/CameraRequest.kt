@@ -22,6 +22,10 @@ class CameraRequest(private val ctx: Context) {
         return backImageReader?.getFrameCount() ?: 0
     }
 
+    fun getFont2FrameCount(): Int {
+        return fontImageReader?.getFrameCount() ?: 0
+    }
+
     private var fontSize = Size(1280,960)
     fun getFontSize(): Size {
         return fontSize
@@ -32,6 +36,10 @@ class CameraRequest(private val ctx: Context) {
         return backSize
     }
 
+    fun getFont2Size(): Size {
+        return backSize
+    }
+
     fun getFont2Request(provider : PreviewSurfaceProvider,  listener: ImageDataListener): PreviewRequest.Builder {
         return getFont2Request(backSize, provider, listener)
     }
@@ -39,7 +47,7 @@ class CameraRequest(private val ctx: Context) {
 
     fun getFont2Request(size: Size, provider : PreviewSurfaceProvider, listener: ImageDataListener): PreviewRequest.Builder {
         backSize = size
-        backImageReader = PreviewImageReader(listener)
+        fontImageReader = PreviewImageReader(listener)
         val previewSize = Size(size.width, size.height)
         val picSize = Size(size.width, size.height)
         val builder = PreviewRequest.createBuilder()
@@ -48,7 +56,7 @@ class CameraRequest(private val ctx: Context) {
             .setPreviewSurfaceProvider(provider)
             .setPictureSize(picSize, ImageFormat.YUV_420_888)
             .setFlash(FlashState.OFF)
-            .addSurfaceProvider(backImageReader)
+            .addSurfaceProvider(fontImageReader)
 
         setTakeBuild(builder, listener)
 

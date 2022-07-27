@@ -120,6 +120,11 @@ class CameraActivity : AppCompatActivity() , CaptureStateListener,
             finish()
         }
 
+        findViewById<Button>(R.id.btn_custom).setOnClickListener {
+            kCamera.openCamera(cameraRequest.getFont2Request(previewProvider,this).builder(), cameraListener)
+
+        }
+
         findViewById<Button>(R.id.btn_back_camera).setOnClickListener {
             if (cameraEnable) {
                 cameraEnable = false
@@ -236,7 +241,9 @@ class CameraActivity : AppCompatActivity() , CaptureStateListener,
             cameraInfo.post {
                 if (kCamera.cameraId == "0") {
                     cameraInfo.text = "贞率:${cameraRequest.getBackFrameCount()} \n分辨率:${cameraRequest.getBackSize().width} x ${cameraRequest.getBackSize().height}"
-                } else {
+                } else if (kCamera.cameraId == "0") {
+                    cameraInfo.text = "贞率:${cameraRequest.getFont2FrameCount()} \n分辨率:${cameraRequest.getFont2Size().width} x ${cameraRequest.getFont2Size().height}"
+                 } else {
                     cameraInfo.text = "贞率:${cameraRequest.getFontFrameCount()} \n分辨率:${cameraRequest.getFontSize().width} x ${cameraRequest.getFontSize().height}"
                 }
 
@@ -256,6 +263,11 @@ class CameraActivity : AppCompatActivity() , CaptureStateListener,
             if (cameraId == "0") {
                 kCamera.openCamera(
                     cameraRequest.getBackRequest(it, previewProvider, this).builder(),
+                    cameraListener
+                )
+            } else if (cameraId == "2") {
+                kCamera.openCamera(
+                    cameraRequest.getFont2Request(it, previewProvider, this).builder(),
                     cameraListener
                 )
             } else {
