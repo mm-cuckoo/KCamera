@@ -11,6 +11,8 @@ object ConfigKey {
     const val TAKE_YUV_TO_JPEG_PIC = "take_yuv_to_jpeg_pic"
     const val TAKE_PNG_PIC = "take_png_pic"
 
+    const val SAVE_PRE_TO_JPEG = "save_pre_to_jpeg"
+
     const val SHOW_PRE_YUV = "show_pre_yuv"
     const val SHOW_PIC_TYPE = "show_pic_type"
 
@@ -24,6 +26,8 @@ object ConfigKey {
 
     init {
         configMap[SHOW_PRE_YUV] = true
+        configMap[TAKE_YUV_TO_JPEG_PIC] = true
+        configMap[SHOW_PIC_TYPE] = SHOW_YUV_OT_JPEG_VALUE
     }
 
 

@@ -1,6 +1,7 @@
 package com.sgf.demo;
 
 import android.app.Application;
+import android.content.Context;
 
 import com.sgf.demo.utils.OrientationSensorManager;
 import com.sgf.kcamera.camera.info.CameraInfoHelper;
@@ -10,6 +11,9 @@ import com.sgf.kcamera.utils.WorkerHandlerManager;
 
 public class AppApplication extends Application {
 
+
+    public static Context context;
+
     @Override
     public void onCreate() {
         super.onCreate();
@@ -17,6 +21,7 @@ public class AppApplication extends Application {
         KLog.setDebug(true);
         CameraInfoHelper.getInstance().load(this, WorkerHandlerManager.getHandler(WorkerHandlerManager.Tag.T_TYPE_DATA));
         OrientationSensorManager.getInstance().init(this);
+        context = this;
     }
 
     @Override

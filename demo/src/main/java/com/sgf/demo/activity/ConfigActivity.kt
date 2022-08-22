@@ -41,6 +41,11 @@ class ConfigActivity : AppCompatActivity() {
         findViewById<CheckBox>(R.id.cb_png_pic).setOnCheckedChangeListener { buttonView, isChecked ->
             ConfigKey.pushBoolean(ConfigKey.TAKE_PNG_PIC, isChecked)
         }
+        val savePreImage = findViewById<CheckBox>(R.id.cb_save_pre_image)
+        savePreImage.isChecked = ConfigKey.getBoolean(ConfigKey.SAVE_PRE_TO_JPEG, false)
+        savePreImage.setOnCheckedChangeListener { buttonView, isChecked ->
+            ConfigKey.pushBoolean(ConfigKey.SAVE_PRE_TO_JPEG, isChecked)
+        }
 
         val zlSensor = findViewById<CheckBox>(R.id.cb_sensor)
         zlSensor.isChecked = ConfigKey.getBoolean(ConfigKey.OPEN_SENSOR, false)

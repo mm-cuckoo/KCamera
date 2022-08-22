@@ -10,7 +10,7 @@ import com.sgf.kcamera.CameraID
 import com.sgf.kcamera.utils.WorkerHandlerManager
 import java.lang.Exception
 
-class PreviewImageReader(private var listener: ImageDataListener? = null) : ImageReaderProvider(TYPE.PREVIEW) {
+class PreviewImageReader2(private var listener: ImageDataListener? = null) : ImageReaderProvider(TYPE.PREVIEW) {
     var cameraId : CameraID = CameraID.BACK
 
     private var frameCount = 0
@@ -53,7 +53,7 @@ class PreviewImageReader(private var listener: ImageDataListener? = null) : Imag
                         lock.putImageByte(it, cameraId == CameraID.FONT)
                         it.close()
                         handler.post {
-                            listener?.onPreImageByteArray(lock, lock.width, lock.height)
+                            listener?.onPreImageByteArray2(lock, lock.width, lock.height)
                         }
                     } else {
                         it.close()

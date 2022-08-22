@@ -8,6 +8,7 @@ import android.media.ImageReader
 import android.os.Environment
 import android.util.Size
 import com.sgf.demo.config.ConfigKey
+import com.sgf.demo.utils.FilePathUtils
 import com.sgf.demo.utils.ImageUtil
 import com.sgf.demo.utils.ImageUtil.yuv420888ToNV21
 import java.io.File
@@ -23,14 +24,15 @@ class CaptureYUVImageReader(private var listener: ImageDataListener? = null) : I
     }
 
     override fun onImageAvailable(reader: ImageReader) {
-        val format = SimpleDateFormat("'/PIC_yuv420_888'_yyyyMMdd_HHmmss'.jpeg'", Locale.getDefault())
+        val format = SimpleDateFormat("'/PIC_YUV420_888'_yyyyMMdd_HHmmss'.jpeg'", Locale.getDefault())
         val fileName = format.format(Date())
-        val filePath = Environment.getExternalStorageDirectory().absoluteFile.path
+        val filePath = FilePathUtils.getRootPath()
+        FilePathUtils.checkFolder(filePath)
         KLog.d("createImageReader: pic file path:" + (filePath + fileName))
         ImageSaver(reader.acquireNextImage(), File(filePath + fileName), listener).run()
     }
 
-    private class ImageSaver internal constructor(
+    private class ImageSaver(
         private val mImage: Image,
         private val mFile: File,
         private val listener: ImageDataListener?

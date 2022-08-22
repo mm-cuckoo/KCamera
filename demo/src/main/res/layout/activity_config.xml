@@ -57,7 +57,6 @@
         <CheckBox
             android:id="@+id/cb_png_pic"
             android:text="PNG"
-            android:visibility="gone"
             android:gravity="center_vertical"
             android:layout_marginEnd="10dp"
             android:layout_marginStart="10dp"
@@ -105,7 +104,6 @@
             <RadioButton
                 android:id="@+id/rb_show_png"
                 android:text="PNG"
-                android:visibility="gone"
                 android:gravity="center_vertical"
                 android:layout_marginEnd="10dp"
                 android:layout_marginStart="10dp"
@@ -123,6 +121,17 @@
                 android:layout_height="wrap_content"/>
         </RadioGroup>
     </LinearLayout>
+
+    <CheckBox
+        android:id="@+id/cb_save_pre_image"
+        android:layout_marginTop="10dp"
+        android:text="是否保存预览数据为JPEG"
+        android:gravity="center_vertical"
+        android:layout_marginEnd="10dp"
+        android:layout_marginStart="10dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"/>
+
 
     <CheckBox
         android:id="@+id/cb_sensor"

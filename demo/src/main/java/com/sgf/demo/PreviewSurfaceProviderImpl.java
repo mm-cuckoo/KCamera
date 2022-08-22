@@ -10,7 +10,7 @@ import com.sgf.kcamera.surface.PreviewSurfaceProvider;
 
 public class PreviewSurfaceProviderImpl implements PreviewSurfaceProvider {
     private final Object obj = new Object();
-    private AutoFitTextureView mTextureView;
+    private final AutoFitTextureView mTextureView;
     private Size mPreviewSize;
     private Surface mSurface;
 
@@ -64,7 +64,7 @@ public class PreviewSurfaceProviderImpl implements PreviewSurfaceProvider {
         mTextureView.setAspectRatio(size.getHeight(), size.getWidth());
     }
 
-    private TextureView.SurfaceTextureListener mTextureListener = new TextureView.SurfaceTextureListener() {
+    private final TextureView.SurfaceTextureListener mTextureListener = new TextureView.SurfaceTextureListener() {
         @Override
         public void onSurfaceTextureAvailable(SurfaceTexture surface, int width, int height) {
             KLog.d("onSurfaceTextureAvailable: .......width:" + width  + "   height:" + height  + "     mPreviewSize:" + mPreviewSize);

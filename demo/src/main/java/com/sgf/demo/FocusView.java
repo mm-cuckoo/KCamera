@@ -15,12 +15,18 @@ import android.view.animation.AccelerateDecelerateInterpolator;
 public class FocusView extends View {
 
     private final String TAG = this.getClass().getSimpleName();
-    private int radiusOuter, radiusInner, strokeWidth;
-    private int colorSuccess, colorFailed, colorNormal, colorCurrent;
+    private final int radiusOuter;
+    private final int radiusInner;
+    private final int strokeWidth;
+    private final int colorSuccess;
+    private final int colorFailed;
+    private final int colorNormal;
+    private int colorCurrent;
     private int previewWidth;
     private int previewHeight;
-    private RectF outerRectF, innerRectF;
-    private Paint paint;
+    private final RectF outerRectF;
+    private final RectF innerRectF;
+    private final Paint paint;
     private ObjectAnimator animator;
 
     public FocusView(Context context) {

@@ -69,8 +69,8 @@ class MainActivity : AppCompatActivity() {
         }
 
         findViewById<Button>(R.id.btn_open_gl_camera).setOnClickListener {
-//            val intent = Intent(this, GLCameraActivity::class.java)
-//            startActivity(intent)
+            val intent = Intent(this, GLCameraActivity::class.java)
+            startActivity(intent)
         }
     }
 }

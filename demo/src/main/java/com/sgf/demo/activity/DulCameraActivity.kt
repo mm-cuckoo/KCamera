@@ -137,11 +137,6 @@ class DulCameraActivity : AppCompatActivity(), CaptureStateListener {
         kCamera.stopCamera()
     }
 
-    override fun onStop() {
-        super.onStop()
-//        kCamera.stopCamera()
-    }
-
     private val fontListener = object: CameraStateListener {
         override fun onFirstFrameCallback() {
             fontBtnEnable = true
@@ -177,12 +172,12 @@ class DulCameraActivity : AppCompatActivity(), CaptureStateListener {
         }
     }
     private fun showDialog(cameraId: String) {
-        val ft = supportFragmentManager.beginTransaction();
-        val prev = supportFragmentManager.findFragmentByTag("dialog");
+        val ft = supportFragmentManager.beginTransaction()
+        val prev = supportFragmentManager.findFragmentByTag("dialog")
         if (prev != null) {
             ft.remove(prev)
         }
-        ft.addToBackStack(null);
+        ft.addToBackStack(null)
 
         // Create and show the dialog.
         val newFragment = SizeSelectDialog(cameraId) {
@@ -192,7 +187,7 @@ class DulCameraActivity : AppCompatActivity(), CaptureStateListener {
 //                kCamera.openFontCamera(cameraRequest.getFontRequest(it,previewFontProvider).builder(), fontListener)
             }
         }
-        newFragment.show(ft, "dialog");
+        newFragment.show(ft, "dialog")
     }
 
     override fun onCaptureStarted() {

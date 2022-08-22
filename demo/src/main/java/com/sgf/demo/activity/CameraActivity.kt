@@ -17,35 +17,54 @@ import com.sgf.demo.config.ConfigKey
 import com.sgf.demo.config.SizeSelectDialog
 import com.sgf.demo.reader.ImageByteArrayWithLock
 import com.sgf.demo.reader.ImageDataListener
+import com.sgf.demo.utils.FilePathUtils
 import com.sgf.demo.utils.ImageUtil
 import com.sgf.demo.utils.OrientationFilter
 import com.sgf.demo.utils.OrientationSensorManager
+import com.sgf.kcamera.CameraID
 import com.sgf.kcamera.CameraStateListener
 import com.sgf.kcamera.CaptureStateListener
 import com.sgf.kcamera.KCamera
+import com.sgf.kcamera.config.DefaultConfigStrategy
 import com.sgf.kcamera.log.KLog
 import com.sgf.kcamera.surface.PreviewSurfaceProvider
+import java.io.File
+import java.io.FileOutputStream
+import java.io.IOException
+import java.text.SimpleDateFormat
+import java.util.*
 
 class CameraActivity : AppCompatActivity() , CaptureStateListener,
     ImageDataListener {
 
     private lateinit var preview : AutoFitTextureView
+    private lateinit var surfaceView1 : AutoFitTextureView
+
     private lateinit var previewProvider : PreviewSurfaceProvider
-    private lateinit var kCamera: KCamera
+    private lateinit var previewProvider2 : PreviewSurfaceProvider
+
     private lateinit var cameraInfo: TextView
-    private lateinit var cameraRequest : CameraRequest
+
     private lateinit var seekEv : SeekBar
     private lateinit var seekZoom : SeekBar
     private lateinit var focusView : FocusView
-    private lateinit var orientationFilter : OrientationFilter
+
     private lateinit var preYuvView : ImageView
+    private lateinit var preYuvView2 : ImageView
     private lateinit var picView : ImageView
     private lateinit var previewTextView : TextView
     private lateinit var picTextView : TextView
 
+    private lateinit var kCamera: KCamera
+    private lateinit var cameraRequest : CameraRequest
+    private lateinit var orientationFilter : OrientationFilter
+
 
     private var cameraEnable = false
-    private var osmOpen = true
+    @Volatile
+    private var capturing = false
+    @Volatile
+    private var isReCapturing = false
 
     private val handler = Handler(Looper.getMainLooper())
 
@@ -58,8 +77,11 @@ class CameraActivity : AppCompatActivity() , CaptureStateListener,
         orientationFilter = OrientationFilter(manager)
 
         preview = findViewById(R.id.preview)
+        surfaceView1 = findViewById(R.id.surface_view1)
+        picTextView = findViewById(R.id.tv_pic_text)
         cameraInfo = findViewById(R.id.camera_info)
         preYuvView = findViewById(R.id.pre_view)
+        preYuvView2 = findViewById(R.id.pre_view2)
         previewTextView = findViewById(R.id.tv_pre_view_text)
         picView = findViewById(R.id.pic_view)
         picTextView = findViewById(R.id.tv_pic_text)
@@ -69,15 +91,15 @@ class CameraActivity : AppCompatActivity() , CaptureStateListener,
         focusView.visibility = View.GONE
         findViewById<ConstraintLayout>(R.id.root_view).addView(focusView)
         previewProvider = PreviewSurfaceProviderImpl(preview)
+        previewProvider2 = PreviewSurfaceProviderImpl(surfaceView1)
         kCamera = KCamera(this)
-
         preview.setOnTouchListener { v, event ->
             if (event.action == MotionEvent.ACTION_UP) {
                 orientationFilter.setOnceListener {
                     kCamera.resetFocus()
                 }
-                kCamera.setFocus(event.getX(), event.getY())
-                focusView.moveToPosition(event.getX(), event.getY())
+                kCamera.setFocus(event.x, event.y)
+                focusView.moveToPosition(event.x, event.y)
             }
             true
         }
@@ -126,7 +148,7 @@ class CameraActivity : AppCompatActivity() , CaptureStateListener,
         }
 
         findViewById<Button>(R.id.btn_back_camera).setOnClickListener {
-            if (cameraEnable) {
+            if (cameraEnable && !capturing) {
                 cameraEnable = false
                 kCamera.openCamera(cameraRequest.getBackRequest(previewProvider,this).builder(), cameraListener)
             } else {
@@ -135,7 +157,7 @@ class CameraActivity : AppCompatActivity() , CaptureStateListener,
         }
 
         findViewById<Button>(R.id.btn_font_camera).setOnClickListener {
-            if (cameraEnable) {
+            if (cameraEnable && !capturing) {
                 cameraEnable = false
                 kCamera.openCamera(cameraRequest.getFontRequest(previewProvider,this).builder(), cameraListener)
             } else {
@@ -144,7 +166,8 @@ class CameraActivity : AppCompatActivity() , CaptureStateListener,
         }
 
         findViewById<Button>(R.id.btn_capture_pic).setOnClickListener {
-            if (cameraEnable) {
+            if (cameraEnable && !capturing) {
+                capturing = true
                 kCamera.takePic(this)
             } else {
                 Toast.makeText(this, "设备没有 Ready ", Toast.LENGTH_SHORT).show()
@@ -152,10 +175,27 @@ class CameraActivity : AppCompatActivity() , CaptureStateListener,
         }
 
         findViewById<Button>(R.id.btn_camera_size).setOnClickListener {
-            if (cameraEnable) {
+            if (cameraEnable && !capturing) {
                 showDialog(kCamera.cameraId)
             } else {
                 Toast.makeText(this, "设备没有 Ready ", Toast.LENGTH_SHORT).show()
+            }
+        }
+
+        findViewById<Button>(R.id.btn_capture_start_pic).setOnClickListener {
+            if (cameraEnable && !capturing) {
+                capturing = true
+                isReCapturing = true
+                kCamera.takePic(this)
+            } else {
+                Toast.makeText(this, "设备没有 Ready ", Toast.LENGTH_SHORT).show()
+            }
+        }
+
+        findViewById<Button>(R.id.btn_capture_stop_pic).setOnClickListener {
+            if (isReCapturing) {
+                capturing = false
+                isReCapturing = false
             }
         }
     }
@@ -241,7 +281,7 @@ class CameraActivity : AppCompatActivity() , CaptureStateListener,
             cameraInfo.post {
                 if (kCamera.cameraId == "0") {
                     cameraInfo.text = "贞率:${cameraRequest.getBackFrameCount()} \n分辨率:${cameraRequest.getBackSize().width} x ${cameraRequest.getBackSize().height}"
-                } else if (kCamera.cameraId == "0") {
+                } else if (kCamera.cameraId == "2") {
                     cameraInfo.text = "贞率:${cameraRequest.getFont2FrameCount()} \n分辨率:${cameraRequest.getFont2Size().width} x ${cameraRequest.getFont2Size().height}"
                  } else {
                     cameraInfo.text = "贞率:${cameraRequest.getFontFrameCount()} \n分辨率:${cameraRequest.getFontSize().width} x ${cameraRequest.getFontSize().height}"
@@ -251,12 +291,12 @@ class CameraActivity : AppCompatActivity() , CaptureStateListener,
         }
     }
     private fun showDialog(cameraId: String) {
-        val ft = supportFragmentManager.beginTransaction();
-        val prev = supportFragmentManager.findFragmentByTag("dialog");
+        val ft = supportFragmentManager.beginTransaction()
+        val prev = supportFragmentManager.findFragmentByTag("dialog")
         if (prev != null) {
             ft.remove(prev)
         }
-        ft.addToBackStack(null);
+        ft.addToBackStack(null)
 
         // Create and show the dialog.
         val newFragment = SizeSelectDialog(cameraId) {
@@ -277,7 +317,7 @@ class CameraActivity : AppCompatActivity() , CaptureStateListener,
                 )
             }
         }
-        newFragment.show(ft, "dialog");
+        newFragment.show(ft, "dialog")
     }
 
     override fun onCaptureStarted() {
@@ -298,9 +338,36 @@ class CameraActivity : AppCompatActivity() , CaptureStateListener,
         height: Int
     ) {
         if (ConfigKey.getBoolean(ConfigKey.SHOW_PRE_YUV, false)) {
+
             val jpeg = ImageUtil.nv21ToJPEG(byteArrayWithLock.getImageByteArray(), width, height)
             val bitmap = ImageUtil.getPicFromBytes(jpeg)
-            byteArrayWithLock.unLockByteArray()
+
+            if (ConfigKey.getBoolean(ConfigKey.SAVE_PRE_TO_JPEG, false)) {
+                val format = SimpleDateFormat("'/PRE_YUV420_888'_yyyyMMdd_HHmmss'.jpeg'", Locale.getDefault())
+                val fileName = format.format(Date())
+                val filePath = FilePathUtils.getRootPath() + "/Preview"
+                FilePathUtils.checkFolder(filePath)
+                KLog.d("createImageReader: pic file path:" + (filePath + fileName))
+                var output: FileOutputStream? = null
+                try {
+                    output = FileOutputStream(File(filePath + fileName))
+                    output.write(jpeg)
+                } catch (e: IOException) {
+                    e.printStackTrace()
+                } finally {
+                    byteArrayWithLock.unLockByteArray()
+                    if (null != output) {
+                        try {
+                            output.close()
+                        } catch (e: IOException) {
+                            e.printStackTrace()
+                        }
+                    }
+                }
+            } else {
+                byteArrayWithLock.unLockByteArray()
+            }
+
             preYuvView.post {
                 preYuvView.setImageBitmap(bitmap)
             }
@@ -309,7 +376,56 @@ class CameraActivity : AppCompatActivity() , CaptureStateListener,
         }
     }
 
+    override fun onPreImageByteArray2(
+        byteArrayWithLock: ImageByteArrayWithLock,
+        width: Int,
+        height: Int
+    ) {
+        if (ConfigKey.getBoolean(ConfigKey.SHOW_PRE_YUV, false)) {
+
+            val jpeg = ImageUtil.nv21ToJPEG(byteArrayWithLock.getImageByteArray(), width, height)
+            val bitmap = ImageUtil.getPicFromBytes(jpeg)
+
+            if (ConfigKey.getBoolean(ConfigKey.SAVE_PRE_TO_JPEG, false)) {
+                val format = SimpleDateFormat("'/PRE_YUV420_888'_yyyyMMdd_HHmmss'.jpeg'", Locale.getDefault())
+                val fileName = format.format(Date())
+                val filePath = FilePathUtils.getRootPath() + "/Preview2"
+                FilePathUtils.checkFolder(filePath)
+                KLog.d("createImageReader: pic file path:" + (filePath + fileName))
+                var output: FileOutputStream? = null
+                try {
+                    output = FileOutputStream(File(filePath + fileName))
+                    output.write(jpeg)
+                } catch (e: IOException) {
+                    e.printStackTrace()
+                } finally {
+                    byteArrayWithLock.unLockByteArray()
+                    if (null != output) {
+                        try {
+                            output.close()
+                        } catch (e: IOException) {
+                            e.printStackTrace()
+                        }
+                    }
+                }
+            } else {
+                byteArrayWithLock.unLockByteArray()
+            }
+
+            preYuvView2.post {
+                preYuvView2.setImageBitmap(bitmap)
+            }
+        } else {
+            byteArrayWithLock.unLockByteArray()
+        }
+    }
+
     override fun onCaptureBitmap(picType : Int, picBitmap: Bitmap ?, savePath: String) {
+        if (isReCapturing) {
+            kCamera.takePic(this)
+        } else {
+            capturing = false
+        }
         picBitmap?.let {
             if (ConfigKey.getInt(ConfigKey.SHOW_PIC_TYPE, ConfigKey.SHOW_NONE_VALUE) == picType) {
                 picView.post {
@@ -321,7 +437,6 @@ class CameraActivity : AppCompatActivity() , CaptureStateListener,
                     Toast.makeText(this, "save path: $savePath", Toast.LENGTH_SHORT).show()
                 }
             }
-
         }
     }
 }

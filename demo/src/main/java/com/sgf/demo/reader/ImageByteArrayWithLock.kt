@@ -31,7 +31,7 @@ class ImageByteArrayWithLock(byteSize : Int) {
     fun putImageByte(image: Image, isNeedRotate : Boolean) {
         width = image.width
         height = image.height
-        imageBuffer = image.yuv420888ToNV21()
+        image.yuv420888ToNV21(imageBuffer)
     }
 
     @Synchronized
