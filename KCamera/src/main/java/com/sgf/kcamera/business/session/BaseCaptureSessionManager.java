@@ -81,7 +81,7 @@ public abstract class BaseCaptureSessionManager implements CaptureSessionManager
     public Observable<KParams> onStartPreview(KParams startParams) {
         return applySurface(startParams).flatMap(new Function<KParams, ObservableSource<KParams>>() {
             @Override
-            public ObservableSource<KParams> apply(@NonNull KParams params) throws Exception {
+            public ObservableSource<KParams> apply(@NonNull KParams params) {
                 return onCreatePreviewSession(params);
             }
         }).flatMap(new Function<KParams, ObservableSource<KParams>>() {
@@ -98,7 +98,7 @@ public abstract class BaseCaptureSessionManager implements CaptureSessionManager
             Size picSize = startParams.get(KParams.Key.PIC_SIZE);
             Size previewSize = startParams.get(KParams.Key.PREVIEW_SIZE);
             List<SurfaceProvider> surfaceProviders = startParams.get(KParams.Key.IMAGE_READER_PROVIDERS);
-            if (mSurfaceManager.isAvailable()) {
+            if (mSurfaceManager.isSurfaceAvailable()) {
                 for (SurfaceProvider provider : surfaceProviders) {
                     mSurfaceManager.addSurfaceProvider(provider, previewSize, picSize);
                 }

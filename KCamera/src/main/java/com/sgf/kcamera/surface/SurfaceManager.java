@@ -1,9 +1,11 @@
 package com.sgf.kcamera.surface;
 
+import android.graphics.SurfaceTexture;
 import android.os.Handler;
 import android.util.Size;
 import android.view.Surface;
 
+import com.sgf.kcamera.BuildConfig;
 import com.sgf.kcamera.log.KLog;
 import com.sgf.kcamera.utils.WorkerHandlerManager;
 
@@ -17,38 +19,45 @@ import java.util.List;
  */
 public class SurfaceManager {
 
-    private PreviewSurfaceProvider mPreviewSurfaceProvider = new DefaultPreviewSurfaceProvider();
     private final List<Surface> mCaptureSurface;
     private final List<Surface> mPreviewSurface;
     private final List<SurfaceProvider> mSurfaceProviders;
     private final Handler mImageSurfaceHandler;
+    private List<PreviewSurfaceProvider> mPreviewSurfaceProviders;
 
 
     public SurfaceManager() {
         this.mCaptureSurface = new ArrayList<>();
         this.mPreviewSurface = new ArrayList<>();
         this.mSurfaceProviders = new ArrayList<>();
+        this.mPreviewSurfaceProviders = new ArrayList<>();
         this.mImageSurfaceHandler = WorkerHandlerManager.getHandler(WorkerHandlerManager.Tag.T_TYPE_IMAGE_SURFACE);
     }
 
-    public void setPreviewSurfaceProvider(PreviewSurfaceProvider previewSurfaceProvider) {
+    public void setPreviewSurfaceProviderList(List<PreviewSurfaceProvider> previewSurfaceProviders) {
         KLog.d(" set ===surface ===>");
-        this.mPreviewSurfaceProvider = previewSurfaceProvider;
+        this.mPreviewSurfaceProviders = previewSurfaceProviders;
     }
 
     /**
      * 只获取预览surface list
      */
     public List<Surface> getPreviewSurface() {
-        KLog.d("get preview " + mPreviewSurfaceProvider.getSurface());
-        if (mPreviewSurfaceProvider.getSurface() != null) {
-            mPreviewSurface.add(mPreviewSurfaceProvider.getSurface());
+        for (int i = 0;i < mPreviewSurfaceProviders.size(); i ++) {
+            PreviewSurfaceProvider surfaceProvider = mPreviewSurfaceProviders.get(i);
+            if (surfaceProvider.getSurface() != null) {
+                mPreviewSurface.add(surfaceProvider.getSurface());
+            }
         }
         return mPreviewSurface;
     }
 
     public Class<?> getPreviewSurfaceClass(){
-        return mPreviewSurfaceProvider.getPreviewSurfaceClass();
+        if (mPreviewSurfaceProviders.size() > 0) {
+            return mPreviewSurfaceProviders.get(0).getPreviewSurfaceClass();
+        } else  {
+            return SurfaceTexture.class;
+        }
     }
 
 
@@ -59,8 +68,7 @@ public class SurfaceManager {
         List<Surface> surfaceList = new ArrayList<>(mCaptureSurface);
         surfaceList.addAll(getPreviewSurface());
         if (surfaceList.size() == 0) {
-            KLog.e("getTotalSurface surface list size is 0");
-            throw new RuntimeException("total surface size must more than 0");
+            KLog.w("getTotalSurface surface list size is 0");
         }
         return surfaceList;
     }
@@ -83,25 +91,46 @@ public class SurfaceManager {
         mCaptureSurface.add(surface);
     }
 
-    public List<Surface> getReaderSurface() {
+    public List<Surface> getCaptureSurface() {
         return mCaptureSurface;
     }
 
     public void setAspectRatio(Size size) {
-        mPreviewSurfaceProvider.setAspectRatio(size);
+        for (int i = 0;i < mPreviewSurfaceProviders.size(); i ++) {
+            PreviewSurfaceProvider surfaceProvider = mPreviewSurfaceProviders.get(i);
+            surfaceProvider.setAspectRatio(size);
+        }
     }
 
-    public boolean isAvailable() {
-        KLog.d("isAvailable===>" + mPreviewSurfaceProvider);
-        return mPreviewSurfaceProvider.isAvailable();
+    /**
+     * 返回预览Surface 是否可用
+     *
+     * 如果没有设置预览Surface ， 表示无预览，返回true
+     */
+    public boolean isSurfaceAvailable() {
+        KLog.d("isAvailable===>");
+        boolean isAvailable = true;
+        for (int i = 0;i < mPreviewSurfaceProviders.size(); i ++) {
+            PreviewSurfaceProvider surfaceProvider = mPreviewSurfaceProviders.get(i);
+            if (isAvailable) {
+                isAvailable = surfaceProvider.isAvailable();
+            }
+
+            if (BuildConfig.DEBUG) {
+                if (!isAvailable) {
+                    KLog.e("surface unavailable index :" + i  + "  total size:"  + mPreviewSurfaceProviders.size());
+                }
+            }
+        }
+        return isAvailable;
     }
 
     public void release() {
         KLog.i("release==1111=>");
-        mPreviewSurfaceProvider = null;
         for (SurfaceProvider provider : mSurfaceProviders) {
             provider.release();
         }
+        mPreviewSurfaceProviders.clear();
         mSurfaceProviders.clear();
         mCaptureSurface.clear();
         mPreviewSurface.clear();

@@ -14,7 +14,7 @@ import java.util.List;
 
 public class PreviewRequest {
     private final List<SurfaceProvider> mSurfaceProviders = new ArrayList<>();
-    private final PreviewSurfaceProvider mPreviewSurfaceProvider;
+    private final List<PreviewSurfaceProvider> mPreviewSurfaceProviders = new ArrayList<>();
     private final CameraID mCameraId;
     private final Size mPreviewSize;
     private final Size mPictureSize;
@@ -24,7 +24,7 @@ public class PreviewRequest {
 
     private PreviewRequest(Builder builder) {
         mSurfaceProviders.addAll(builder.mSurfaceProviders);
-        mPreviewSurfaceProvider = builder.mPreviewSurfaceProvider;
+        mPreviewSurfaceProviders.addAll(builder.mPreviewSurfaces);
         mCameraId = builder.mCameraId;
         mPictureSize = builder.mPictureSize;
         mImageFormat = builder.mImageFormat;
@@ -40,8 +40,8 @@ public class PreviewRequest {
         }
     }
 
-    public PreviewSurfaceProvider getPreviewSurfaceProvider() {
-        return mPreviewSurfaceProvider;
+    public List<PreviewSurfaceProvider> getPreviewSurfaceProviders() {
+        return mPreviewSurfaceProviders;
     }
 
     public List<SurfaceProvider> getSurfaceProviders() {
@@ -78,15 +78,16 @@ public class PreviewRequest {
 
     public static class Builder {
         private final List<SurfaceProvider> mSurfaceProviders = new ArrayList<>();
-        private PreviewSurfaceProvider mPreviewSurfaceProvider;
+        private final List<PreviewSurfaceProvider> mPreviewSurfaces = new ArrayList<>();
         private CameraID mCameraId = CameraID.BACK;
         private Size mPreviewSize;
         private Size mPictureSize;
         private int mImageFormat;
         private float mZoom = 1f;
         private int mFlashState = KParams.Value.FLASH_STATE.OFF;
-        public Builder setPreviewSurfaceProvider(PreviewSurfaceProvider provider) {
-            this.mPreviewSurfaceProvider = provider;
+
+        public Builder addPreviewSurfaceProvider(PreviewSurfaceProvider provider){
+            mPreviewSurfaces.add(provider);
             return this;
         }
 

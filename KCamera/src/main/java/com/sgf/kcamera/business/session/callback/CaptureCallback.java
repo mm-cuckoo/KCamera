@@ -5,6 +5,7 @@ import android.hardware.camera2.CameraCaptureSession;
 import android.hardware.camera2.CaptureFailure;
 import android.hardware.camera2.CaptureRequest;
 import android.hardware.camera2.TotalCaptureResult;
+import android.util.Range;
 
 import androidx.annotation.NonNull;
 
@@ -17,7 +18,7 @@ import io.reactivex.ObservableEmitter;
 public class CaptureCallback extends CameraCaptureSession.CaptureCallback {
 
     private CaptureRequest.Builder mCaptureBuilder;
-    private CameraSession mCameraSession;
+    private final CameraSession mCameraSession;
     private ObservableEmitter<KParams> mEmitter;
     public CaptureCallback(@NonNull CameraSession cameraSession) {
         this.mCameraSession = cameraSession;

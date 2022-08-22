@@ -5,9 +5,11 @@ import android.hardware.camera2.CameraCaptureSession;
 import android.hardware.camera2.CaptureRequest;
 import android.hardware.camera2.CaptureResult;
 import android.hardware.camera2.TotalCaptureResult;
+import android.util.Range;
 
 import androidx.annotation.NonNull;
 
+import com.sgf.kcamera.BuildConfig;
 import com.sgf.kcamera.KParams;
 import com.sgf.kcamera.camera.session.CameraSession;
 import com.sgf.kcamera.log.KLog;
@@ -63,11 +65,16 @@ public class PreviewCallback extends CameraCaptureSession.CaptureCallback {
                                    @NonNull TotalCaptureResult result) {
 
 
+        //KLog.d("onCaptureCompleted=====");
         if (!mFirstFrameCompleted) {
             mFirstFrameCompleted = true;
             KParams previewParams = new KParams();
             previewParams.put(KParams.Key.PREVIEW_FIRST_FRAME, KParams.Value.OK);
             mEmitter.onNext(previewParams);
+            if (BuildConfig.DEBUG) {
+                Range<Integer> fpsRang = request.get(CaptureRequest.CONTROL_AE_TARGET_FPS_RANGE);
+                KLog.d("onCaptureCompleted====> fpsRang:" + fpsRang.toString());
+            }
             KLog.d("preview first frame call back");
         }
 
@@ -194,7 +201,6 @@ public class PreviewCallback extends CameraCaptureSession.CaptureCallback {
         requestParams.put(KParams.Key.CAPTURE_CALLBACK, this);
         try {
             mCameraSession.onRepeatingRequest(requestParams);
-            mCameraSession.capture(requestParams);
         } catch (CameraAccessException e) {
             e.printStackTrace();
         }

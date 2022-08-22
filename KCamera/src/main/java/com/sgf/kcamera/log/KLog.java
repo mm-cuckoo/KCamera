@@ -33,19 +33,19 @@ public class KLog {
     public static void e(String message) {
         String className = new Exception().getStackTrace()[1].getFileName();
         className = className.substring(0, className.indexOf("."));
-        Log.d(printTagFormat(className),message);
+        Log.e(printTagFormat(className),message);
     }
 
     public static void i(String message) {
         String className = new Exception().getStackTrace()[1].getFileName();
         className = className.substring(0, className.indexOf("."));
-        Log.d(printTagFormat(className),message);
+        Log.i(printTagFormat(className),message);
     }
 
     public static void w(String message) {
         String className = new Exception().getStackTrace()[1].getFileName();
         className = className.substring(0, className.indexOf("."));
-        Log.d(printTagFormat(className),message);
+        Log.w(printTagFormat(className),message);
     }
 
     private static String printTagFormat(String className) {

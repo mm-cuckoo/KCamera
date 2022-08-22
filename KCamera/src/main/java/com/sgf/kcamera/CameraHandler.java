@@ -30,6 +30,7 @@ import io.reactivex.functions.Function;
  */
 public class CameraHandler {
 
+    private final static Object OBJ = new Object();
     private final CaptureBusiness mCameraBusiness;
     private final CameraInfoManager mCameraInfoManager;
     private final ConfigWrapper mConfig;
@@ -55,7 +56,7 @@ public class CameraHandler {
         mCameraStateListener = listener;
         mCameraId = request.getCameraId();
         final KParams openParams = new KParams();
-        mSurfaceManager.setPreviewSurfaceProvider(request.getPreviewSurfaceProvider());
+        mSurfaceManager.setPreviewSurfaceProviderList(request.getPreviewSurfaceProviders());
         openParams.put(KParams.Key.SURFACE_MANAGER, mSurfaceManager);
         openParams.put(KParams.Key.CAMERA_ID, mCameraId.ID);
         openParams.put(KParams.Key.FLASH_STATE, request.getFlashState());
@@ -81,36 +82,38 @@ public class CameraHandler {
 
         KLog.d("max zoom:" + mCameraInfoManager.getMaxZoom()  + " zoom :" + request.getZoom() + " zoom area:" + mCameraInfoManager.getActiveArraySize() );
 
-        Long openTime = System.currentTimeMillis();
-        mCameraBusiness.closeCamera(new KParams()).flatMap(new Function<KParams, ObservableSource<KParams>>() {
-            @Override
-            public ObservableSource<KParams> apply(KParams params) throws Exception {
-                int closeResult = params.get(KParams.Key.CLOSE_CAMERA_STATUS, KParams.Value.CLOSE_STATE.DEVICE_NULL);
+        long openTime = System.currentTimeMillis();
+        mCameraBusiness.closeCamera(new KParams()).flatMap((Function<KParams, ObservableSource<KParams>>) params -> {
+            int closeResult = params.get(KParams.Key.CLOSE_CAMERA_STATUS, KParams.Value.CLOSE_STATE.DEVICE_NULL);
+            synchronized (OBJ) {
                 if (mCameraStateListener != null) {
                     mCameraStateListener.onCameraClosed(closeResult);
                 }
-                KLog.d("open close camera use time:" + (System.currentTimeMillis() - openTime));
-
-                return mCameraBusiness.openCamera(openParams);
             }
+            KLog.d("open close camera use time:" + (System.currentTimeMillis() - openTime));
+
+            return mCameraBusiness.openCamera(openParams);
         }).subscribe(new CameraObserver<KParams>(){
             @Override
             public void onNext(@NonNull KParams resultParams) {
                 Integer afState = resultParams.get(KParams.Key.AF_STATE);
-                if (afState != null && mCameraStateListener != null) {
-                    // 对焦模式发生变化
-                    mCameraStateListener.onFocusStateChange(afState);
+                synchronized (OBJ) {
+                    if (afState != null && mCameraStateListener != null) {
+                        // 对焦模式发生变化
+                        mCameraStateListener.onFocusStateChange(afState);
+                    }
+                    if (KParams.Value.OK.equals(resultParams.get(KParams.Key.PREVIEW_FIRST_FRAME)) && mCameraStateListener != null) {
+                        // 第一帧图像数据返回
+                        KLog.d("open camera use time:" + (System.currentTimeMillis() - openTime));
+                        mCameraStateListener.onFirstFrameCallback();
+                    }
                 }
 
-                if (KParams.Value.OK.equals(resultParams.get(KParams.Key.PREVIEW_FIRST_FRAME)) && mCameraStateListener != null) {
-                    // 第一帧图像数据返回
-                    KLog.d("open camera use time:" + (System.currentTimeMillis() - openTime));
-                    mCameraStateListener.onFirstFrameCallback();
-                }
             }
 
             @Override
             public void onError(@androidx.annotation.NonNull Throwable e) {
+                super.onError(e);
                 if (e instanceof KException) {
                     KLog.e(e.getMessage());
                 }
@@ -154,7 +157,9 @@ public class CameraHandler {
     public final synchronized void onCloseCamera() {
         mCameraId = null;
         CameraStateListener listener = mCameraStateListener;
-        mCameraStateListener = null;
+        synchronized (OBJ) {
+            mCameraStateListener = null;
+        }
         KParams closeParams = new KParams();
         mCameraBusiness.closeCamera(closeParams).subscribe(new CameraObserver<KParams>() {
             @Override

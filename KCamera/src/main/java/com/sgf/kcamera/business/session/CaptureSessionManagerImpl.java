@@ -60,6 +60,7 @@ public class CaptureSessionManagerImpl extends BaseCaptureSessionManager {
             mFocusHelper.init(repeatingParams.get(KParams.Key.PREVIEW_SIZE));
             mPreviewCaptureCallback.applyPreview(previewBuilder, emitter);
             mSessionRequestManager.applyPreviewRequest(previewBuilder);
+//            previewBuilder.set(CaptureRequest.CONTROL_AE_TARGET_FPS_RANGE, new Range<>(28, 30));
             applyPreviewRequest(previewBuilder, repeatingParams);
             repeatingParams.put(KParams.Key.REQUEST_BUILDER, previewBuilder);
             repeatingParams.put(KParams.Key.CAPTURE_CALLBACK, mPreviewCaptureCallback);
@@ -83,7 +84,7 @@ public class CaptureSessionManagerImpl extends BaseCaptureSessionManager {
 
     private CaptureRequest.Builder getCaptureBuilder() {
         if (mCaptureBuilder == null) {
-            mCaptureBuilder = createCaptureBuilder(getSurfaceManager().getReaderSurface());
+            mCaptureBuilder = createCaptureBuilder(getSurfaceManager().getCaptureSurface());
         }
         return mCaptureBuilder;
     }
