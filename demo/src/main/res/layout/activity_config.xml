@@ -23,7 +23,81 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"/>
 
+    <View
+        android:layout_marginEnd="10dp"
+        android:layout_marginStart="10dp"
+        android:background="@color/light_grey"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"/>
 
+    <TextView
+        android:text="前摄"
+        android:textStyle="bold"
+        android:layout_marginStart="10dp"
+        android:layout_marginTop="10dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"/>
+    <FrameLayout
+        android:orientation="horizontal"
+        android:gravity="start"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+        <TextView
+            android:id="@+id/font_preivew_size"
+            android:text="拍照，预览：1920*1080"
+            android:layout_marginStart="10dp"
+            android:layout_gravity="center_vertical"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"/>
+        <Button
+            android:id="@+id/btn_change_font_preview_size"
+            android:text="修改"
+            android:layout_gravity="end"
+            android:layout_marginEnd="10dp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"/>
+    </FrameLayout>
+    <View
+        android:layout_marginEnd="10dp"
+        android:layout_marginStart="10dp"
+        android:background="@color/light_grey"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"/>
+
+    <TextView
+        android:text="后摄"
+        android:textStyle="bold"
+        android:layout_marginStart="10dp"
+        android:layout_marginTop="10dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"/>
+
+    <FrameLayout
+        android:orientation="horizontal"
+        android:gravity="start"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+        <TextView
+            android:id="@+id/back_preivew_size"
+            android:text="拍照，预览：1920*1080"
+            android:layout_marginStart="10dp"
+            android:layout_gravity="center_vertical"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"/>
+        <Button
+            android:id="@+id/btn_change_back_preview_size"
+            android:text="修改"
+            android:layout_gravity="end"
+            android:layout_marginEnd="10dp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"/>
+    </FrameLayout>
+    <View
+        android:layout_marginEnd="10dp"
+        android:layout_marginStart="10dp"
+        android:background="@color/light_grey"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"/>
     <TextView
         android:text="选择拍照输出图片格式"
         android:layout_marginStart="10dp"
@@ -65,7 +139,12 @@
 
     </LinearLayout>
 
-
+    <View
+        android:layout_marginEnd="10dp"
+        android:layout_marginStart="10dp"
+        android:background="@color/light_grey"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"/>
     <TextView
         android:text="选择拍照预览显示格式"
         android:layout_marginStart="10dp"
@@ -121,7 +200,12 @@
                 android:layout_height="wrap_content"/>
         </RadioGroup>
     </LinearLayout>
-
+    <View
+        android:layout_marginEnd="10dp"
+        android:layout_marginStart="10dp"
+        android:background="@color/light_grey"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"/>
     <CheckBox
         android:id="@+id/cb_save_pre_image"
         android:layout_marginTop="10dp"
@@ -132,7 +216,12 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"/>
 
-
+    <View
+        android:layout_marginEnd="10dp"
+        android:layout_marginStart="10dp"
+        android:background="@color/light_grey"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"/>
     <CheckBox
         android:id="@+id/cb_sensor"
         android:layout_marginTop="10dp"
@@ -142,6 +231,11 @@
         android:layout_marginStart="10dp"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"/>
-
+    <View
+        android:layout_marginEnd="10dp"
+        android:layout_marginStart="10dp"
+        android:background="@color/light_grey"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"/>
 
 </LinearLayout>

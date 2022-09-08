@@ -3,13 +3,16 @@ package com.sgf.demo.activity
 import android.annotation.SuppressLint
 import android.content.Intent
 import android.graphics.Bitmap
+import android.hardware.camera2.CaptureRequest
 import android.hardware.camera2.CaptureResult
+import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.view.MotionEvent
 import android.view.View
 import android.widget.*
+import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.constraintlayout.widget.ConstraintLayout
 import com.sgf.demo.*
@@ -21,13 +24,13 @@ import com.sgf.demo.utils.FilePathUtils
 import com.sgf.demo.utils.ImageUtil
 import com.sgf.demo.utils.OrientationFilter
 import com.sgf.demo.utils.OrientationSensorManager
-import com.sgf.kcamera.CameraID
 import com.sgf.kcamera.CameraStateListener
 import com.sgf.kcamera.CaptureStateListener
 import com.sgf.kcamera.KCamera
-import com.sgf.kcamera.config.DefaultConfigStrategy
 import com.sgf.kcamera.log.KLog
 import com.sgf.kcamera.surface.PreviewSurfaceProvider
+import com.sgf.kgl.camera.CameraGLView
+import com.sgf.kgl.camera.video.VideoRecordManager
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
@@ -38,10 +41,12 @@ class CameraActivity : AppCompatActivity() , CaptureStateListener,
     ImageDataListener {
 
     private lateinit var preview : AutoFitTextureView
+    private lateinit var glPreview : CameraGLView
     private lateinit var surfaceView1 : AutoFitTextureView
 
-    private lateinit var previewProvider : PreviewSurfaceProvider
-    private lateinit var previewProvider2 : PreviewSurfaceProvider
+//    private lateinit var previewProvider : PreviewSurfaceProvider
+//    private lateinit var previewProvider2 : PreviewSurfaceProvider
+    private lateinit var glPreviewProvider : PreviewSurfaceProvider
 
     private lateinit var cameraInfo: TextView
 
@@ -54,11 +59,13 @@ class CameraActivity : AppCompatActivity() , CaptureStateListener,
     private lateinit var picView : ImageView
     private lateinit var previewTextView : TextView
     private lateinit var picTextView : TextView
+    private lateinit var customValue : EditText
+
 
     private lateinit var kCamera: KCamera
     private lateinit var cameraRequest : CameraRequest
     private lateinit var orientationFilter : OrientationFilter
-
+    private lateinit var videoRecordManager : VideoRecordManager
 
     private var cameraEnable = false
     @Volatile
@@ -77,6 +84,7 @@ class CameraActivity : AppCompatActivity() , CaptureStateListener,
         orientationFilter = OrientationFilter(manager)
 
         preview = findViewById(R.id.preview)
+        glPreview = findViewById(R.id.gl_preview)
         surfaceView1 = findViewById(R.id.surface_view1)
         picTextView = findViewById(R.id.tv_pic_text)
         cameraInfo = findViewById(R.id.camera_info)
@@ -85,13 +93,17 @@ class CameraActivity : AppCompatActivity() , CaptureStateListener,
         previewTextView = findViewById(R.id.tv_pre_view_text)
         picView = findViewById(R.id.pic_view)
         picTextView = findViewById(R.id.tv_pic_text)
+        customValue = findViewById(R.id.et_custom_value)
 
         focusView = FocusView(this)
         focusView.initFocusArea(400, 400)
         focusView.visibility = View.GONE
         findViewById<ConstraintLayout>(R.id.root_view).addView(focusView)
-        previewProvider = PreviewSurfaceProviderImpl(preview)
-        previewProvider2 = PreviewSurfaceProviderImpl(surfaceView1)
+//        previewProvider = PreviewSurfaceProviderImpl(preview)
+//        previewProvider2 = PreviewSurfaceProviderImpl(surfaceView1)
+        glPreviewProvider = GLViewProvider(glPreview)
+        videoRecordManager = VideoRecordManager(glPreview)
+
         kCamera = KCamera(this)
         preview.setOnTouchListener { v, event ->
             if (event.action == MotionEvent.ACTION_UP) {
@@ -128,6 +140,20 @@ class CameraActivity : AppCompatActivity() , CaptureStateListener,
             override fun onStopTrackingTouch(seekBar: SeekBar) {}
         })
 
+        findViewById<Button>(R.id.btn_set_custom).setOnClickListener {
+            customValue.text?.let { ed->
+                kCamera.setCustomRequest {crb ->
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+//                        val customerKey: CaptureRequest.Key<Int> = CaptureRequest.Key<Int>(
+//                            "XXXXXX",
+//                            Int::class.java)
+//                        crb.set<Int>(customerKey, it.toString().toInt())
+                    }
+                }
+            }
+        }
+
+
         findViewById<Button>(R.id.btn_open_page).setOnClickListener {
             val intent = Intent(this, CameraActivity::class.java)
             this.startActivity(intent)
@@ -143,14 +169,17 @@ class CameraActivity : AppCompatActivity() , CaptureStateListener,
         }
 
         findViewById<Button>(R.id.btn_custom).setOnClickListener {
-            kCamera.openCamera(cameraRequest.getFont2Request(previewProvider,this).builder(), cameraListener)
+            kCamera.openCamera(cameraRequest.getFont2Request(glPreviewProvider,this).builder(), cameraListener)
 
         }
 
         findViewById<Button>(R.id.btn_back_camera).setOnClickListener {
             if (cameraEnable && !capturing) {
                 cameraEnable = false
-                kCamera.openCamera(cameraRequest.getBackRequest(previewProvider,this).builder(), cameraListener)
+                glPreview.onPause()
+                glPreview.onResume()
+                glPreview.setAspectRatio(cameraRequest.getBackSize().width, cameraRequest.getBackSize().height)
+                kCamera.openCamera(cameraRequest.getBackRequest(glPreviewProvider,this).builder(), cameraListener)
             } else {
                 Toast.makeText(this, "设备没有 Ready ", Toast.LENGTH_SHORT).show()
             }
@@ -159,7 +188,8 @@ class CameraActivity : AppCompatActivity() , CaptureStateListener,
         findViewById<Button>(R.id.btn_font_camera).setOnClickListener {
             if (cameraEnable && !capturing) {
                 cameraEnable = false
-                kCamera.openCamera(cameraRequest.getFontRequest(previewProvider,this).builder(), cameraListener)
+                glPreview.setAspectRatio(cameraRequest.getFontSize().width, cameraRequest.getFontSize().height)
+                kCamera.openCamera(cameraRequest.getFontRequest(glPreviewProvider,this).builder(), cameraListener)
             } else {
                 Toast.makeText(this, "设备没有 Ready ", Toast.LENGTH_SHORT).show()
             }
@@ -168,15 +198,8 @@ class CameraActivity : AppCompatActivity() , CaptureStateListener,
         findViewById<Button>(R.id.btn_capture_pic).setOnClickListener {
             if (cameraEnable && !capturing) {
                 capturing = true
+                startTime = System.currentTimeMillis()
                 kCamera.takePic(this)
-            } else {
-                Toast.makeText(this, "设备没有 Ready ", Toast.LENGTH_SHORT).show()
-            }
-        }
-
-        findViewById<Button>(R.id.btn_camera_size).setOnClickListener {
-            if (cameraEnable && !capturing) {
-                showDialog(kCamera.cameraId)
             } else {
                 Toast.makeText(this, "设备没有 Ready ", Toast.LENGTH_SHORT).show()
             }
@@ -200,8 +223,12 @@ class CameraActivity : AppCompatActivity() , CaptureStateListener,
         }
     }
 
+    var startTime : Long = 0;
+
     override fun onResume() {
         super.onResume()
+        cameraRequest.reloadSize()
+        glPreview.onResume()
         picView.setImageBitmap(null)
         preYuvView.setImageBitmap(null)
         if (ConfigKey.getBoolean(ConfigKey.SHOW_PRE_YUV, false)) {
@@ -221,7 +248,14 @@ class CameraActivity : AppCompatActivity() , CaptureStateListener,
 
         handler.postDelayed(frameCountRunner, 1000)
         orientationFilter.onResume()
-        kCamera.openCamera(cameraRequest.getBackRequest(previewProvider,this).builder(), cameraListener)
+        if (AppApplication.sCameraId == "0") {
+            glPreview.setAspectRatio(cameraRequest.getBackSize().width, cameraRequest.getBackSize().height)
+            kCamera.openCamera(cameraRequest.getBackRequest(glPreviewProvider,this).builder(), cameraListener)
+        } else {
+            glPreview.setAspectRatio(cameraRequest.getFontSize().width, cameraRequest.getFontSize().height)
+            kCamera.openCamera(cameraRequest.getFontRequest(glPreviewProvider,this).builder(), cameraListener)
+
+        }
 
     }
 
@@ -230,6 +264,7 @@ class CameraActivity : AppCompatActivity() , CaptureStateListener,
         handler.removeCallbacksAndMessages(null)
         orientationFilter.onPause()
         kCamera.closeCamera()
+        glPreview.onPause()
     }
 
     override fun onDestroy() {
@@ -240,6 +275,13 @@ class CameraActivity : AppCompatActivity() , CaptureStateListener,
     private val cameraListener = object: CameraStateListener {
         override fun onFirstFrameCallback() {
             cameraEnable = true
+            kCamera.cameraId?.let {
+                if (it == "1") {
+                    glPreview.setMirrorView(true)
+                } else {
+                    glPreview.setMirrorView(false)
+                }
+            }
         }
 
         override fun onCameraClosed(closeCode: Int) {
@@ -300,19 +342,20 @@ class CameraActivity : AppCompatActivity() , CaptureStateListener,
 
         // Create and show the dialog.
         val newFragment = SizeSelectDialog(cameraId) {
+            glPreview.setAspectRatio(it.width, it.height)
             if (cameraId == "0") {
                 kCamera.openCamera(
-                    cameraRequest.getBackRequest(it, previewProvider, this).builder(),
+                    cameraRequest.getBackRequest(it, glPreviewProvider, this).builder(),
                     cameraListener
                 )
             } else if (cameraId == "2") {
                 kCamera.openCamera(
-                    cameraRequest.getFont2Request(it, previewProvider, this).builder(),
+                    cameraRequest.getFont2Request(it, glPreviewProvider, this).builder(),
                     cameraListener
                 )
             } else {
                 kCamera.openCamera(
-                    cameraRequest.getFontRequest(it, previewProvider, this).builder(),
+                    cameraRequest.getFontRequest(it, glPreviewProvider, this).builder(),
                     cameraListener
                 )
             }
@@ -420,7 +463,11 @@ class CameraActivity : AppCompatActivity() , CaptureStateListener,
         }
     }
 
-    override fun onCaptureBitmap(picType : Int, picBitmap: Bitmap ?, savePath: String) {
+    override fun onCaptureBitmap(picType : Int, picBitmap: Bitmap ?, savePath: String, captureTime: Long) {
+        KLog.d("take pic startTime : $startTime   cap : $captureTime  use : ${captureTime - startTime}")
+
+        val use = captureTime - startTime
+
         if (isReCapturing) {
             kCamera.takePic(this)
         } else {
@@ -429,11 +476,14 @@ class CameraActivity : AppCompatActivity() , CaptureStateListener,
         picBitmap?.let {
             if (ConfigKey.getInt(ConfigKey.SHOW_PIC_TYPE, ConfigKey.SHOW_NONE_VALUE) == picType) {
                 picView.post {
-                        Toast.makeText(this, "save path: $savePath", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this, "take pic startTime : $startTime   cap : $captureTime  use : $use", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this, "save path: $savePath", Toast.LENGTH_SHORT).show()
                         picView.setImageBitmap(picBitmap)
                     }
             } else {
                 handler.post {
+                    Toast.makeText(this, "take pic startTime : $startTime   cap : $captureTime  use : $use", Toast.LENGTH_SHORT).show()
+
                     Toast.makeText(this, "save path: $savePath", Toast.LENGTH_SHORT).show()
                 }
             }

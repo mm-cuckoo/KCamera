@@ -32,17 +32,19 @@ class CapturePNGImageReader(private var listener: ImageDataListener? = null) : I
     }
 
     override fun onImageAvailable(reader: ImageReader) {
+        val captureTime = System.currentTimeMillis()
         val format = SimpleDateFormat("'/PIC_PNG'_yyyyMMdd_HHmmss'.png'", Locale.getDefault())
         val fileName = format.format(Date())
         val filePath = FilePathUtils.getRootPath()
         FilePathUtils.checkFolder(filePath)
         KLog.d("createImageReader: pic file path:" + (filePath + fileName))
-        ImageSaver(reader.acquireNextImage(), File(filePath + fileName), listener).run()
+        ImageSaver(reader.acquireNextImage(), File(filePath + fileName), captureTime,listener).run()
     }
 
     private class ImageSaver(
         private val mImage: Image,
         private val mFile: File,
+        private val captureTime : Long,
         private val listener: ImageDataListener? = null
 
     ) : Runnable {
@@ -57,7 +59,7 @@ class CapturePNGImageReader(private var listener: ImageDataListener? = null) : I
                 bitmap.compress(Bitmap.CompressFormat.PNG, 100, baos)
                 mFile.writeBytes(baos.toByteArray())
             }
-            listener?.onCaptureBitmap(ConfigKey.SHOW_PNG_VALUE, bitmap, mFile.path)
+            listener?.onCaptureBitmap(ConfigKey.SHOW_PNG_VALUE, bitmap, mFile.path,captureTime)
         }
 
     }

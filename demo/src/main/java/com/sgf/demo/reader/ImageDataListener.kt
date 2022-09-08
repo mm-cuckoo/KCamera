@@ -9,5 +9,5 @@ interface ImageDataListener {
     fun onPreImageByteArray(byteArrayWithLock: ImageByteArrayWithLock, width : Int, height: Int)
     fun onPreImageByteArray2(byteArrayWithLock: ImageByteArrayWithLock, width : Int, height: Int)
 
-    fun onCaptureBitmap(picType : Int, picBitmap: Bitmap?, savePath : String)
+    fun onCaptureBitmap(picType : Int, picBitmap: Bitmap?, savePath : String, captureTime : Long)
 }

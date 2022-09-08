@@ -24,24 +24,27 @@ class CaptureYUVImageReader(private var listener: ImageDataListener? = null) : I
     }
 
     override fun onImageAvailable(reader: ImageReader) {
+        val captureTime = System.currentTimeMillis()
         val format = SimpleDateFormat("'/PIC_YUV420_888'_yyyyMMdd_HHmmss'.jpeg'", Locale.getDefault())
         val fileName = format.format(Date())
         val filePath = FilePathUtils.getRootPath()
         FilePathUtils.checkFolder(filePath)
         KLog.d("createImageReader: pic file path:" + (filePath + fileName))
-        ImageSaver(reader.acquireNextImage(), File(filePath + fileName), listener).run()
+        ImageSaver(reader.acquireNextImage(), File(filePath + fileName), captureTime,listener).run()
     }
 
     private class ImageSaver(
         private val mImage: Image,
         private val mFile: File,
+        private val captureTime : Long,
         private val listener: ImageDataListener?
     ) : Runnable {
         override fun run() {
             val nv21 = mImage.yuv420888ToNV21()
+            val captureTimes = System.currentTimeMillis()
             val jpeg = ImageUtil.nv21ToJPEG(nv21, mImage.width, mImage.height)
             val bitmap = ImageUtil.getPicFromBytes(jpeg)
-            listener?.onCaptureBitmap(ConfigKey.SHOW_YUV_OT_JPEG_VALUE, bitmap, mFile.path)
+            listener?.onCaptureBitmap(ConfigKey.SHOW_YUV_OT_JPEG_VALUE, bitmap, mFile.path, captureTimes)
             var output: FileOutputStream? = null
             try {
                 output = FileOutputStream(mFile)

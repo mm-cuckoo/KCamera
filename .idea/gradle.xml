@@ -11,10 +11,10 @@
           <set>
             <option value="$PROJECT_DIR$" />
             <option value="$PROJECT_DIR$/KCamera" />
+            <option value="$PROJECT_DIR$/KGLCamera" />
             <option value="$PROJECT_DIR$/demo" />
           </set>
         </option>
-        <option name="resolveModulePerSourceSet" value="false" />
       </GradleProjectSettings>
     </option>
   </component>

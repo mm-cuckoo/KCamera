@@ -10,11 +10,9 @@ import com.sgf.kcamera.request.FlashState
 import com.sgf.kcamera.request.PreviewRequest
 import com.sgf.kcamera.surface.PreviewSurfaceProvider
 
-class CameraRequest(private val ctx: Context) {
+class GLCameraRequest(private val ctx: Context) {
     private var fontImageReader: PreviewImageReader? = null
-    private var fontImageReader2: PreviewImageReader2? = null
     private var backImageReader: PreviewImageReader? = null
-    private var backImageReader2: PreviewImageReader2? = null
 
     fun getFontFrameCount(): Int {
         return fontImageReader?.getFrameCount() ?: 0
@@ -34,19 +32,12 @@ class CameraRequest(private val ctx: Context) {
     }
 
     private var backSize = Size(1280,960)
-
-
-    fun reloadSize() {
-        fontSize = ConfigKey.getSize(ConfigKey.FONT_PREVIEW_SIZE, ConfigKey.DEF_FONT_PREVIEW_SIZE)
-        backSize = ConfigKey.getSize(ConfigKey.BACK_PREVIEW_SIZE, ConfigKey.DEF_BACK_PREVIEW_SIZE)
-    }
-
     fun getBackSize(): Size {
         return backSize
     }
 
     fun getFont2Size(): Size {
-        return fontSize
+        return backSize
     }
 
     fun getFont2Request(provider : PreviewSurfaceProvider,  listener: ImageDataListener): PreviewRequest.Builder {
@@ -57,7 +48,6 @@ class CameraRequest(private val ctx: Context) {
     fun getFont2Request(size: Size, provider : PreviewSurfaceProvider, listener: ImageDataListener): PreviewRequest.Builder {
         backSize = size
         fontImageReader = PreviewImageReader(listener)
-        fontImageReader2 = PreviewImageReader2(listener)
         val previewSize = Size(size.width, size.height)
         val picSize = Size(size.width, size.height)
         val builder = PreviewRequest.createBuilder()
@@ -66,39 +56,7 @@ class CameraRequest(private val ctx: Context) {
             .addPreviewSurfaceProvider(provider)
             .setPictureSize(picSize, ImageFormat.YUV_420_888)
             .setFlash(FlashState.OFF)
-        if (ConfigKey.getBoolean(ConfigKey.SHOW_PRE_YUV, false)) {
-            builder.addSurfaceProvider(fontImageReader)
-        }
-//            .addSurfaceProvider(fontImageReader2)
-
-        setTakeBuild(builder, listener)
-
-        return builder
-
-    }
-
-    fun getBackRequest2(provider : PreviewSurfaceProvider,providerpr1 : PreviewSurfaceProvider,  listener: ImageDataListener): PreviewRequest.Builder {
-        return getBackRequest2(backSize, provider,providerpr1, listener)
-    }
-
-
-    fun getBackRequest2(size: Size, provider : PreviewSurfaceProvider,provider1 : PreviewSurfaceProvider, listener: ImageDataListener): PreviewRequest.Builder {
-        backSize = size
-        backImageReader = PreviewImageReader(listener)
-        backImageReader2 = PreviewImageReader2(listener)
-        val previewSize = Size(size.width, size.height)
-        val picSize = Size(size.width, size.height)
-        val builder = PreviewRequest.createBuilder()
-            .setPreviewSize(previewSize)
-            .openBackCamera()
-            .addPreviewSurfaceProvider(provider)
-            .addPreviewSurfaceProvider(provider1)
-            .setPictureSize(picSize, ImageFormat.YUV_420_888)
-            .setFlash(FlashState.OFF)
-        if (ConfigKey.getBoolean(ConfigKey.SHOW_PRE_YUV, false)) {
-            builder.addSurfaceProvider(backImageReader)
-        }
-//            .addSurfaceProvider(backImageReader2)
+            .addSurfaceProvider(fontImageReader)
 
         setTakeBuild(builder, listener)
 
@@ -115,7 +73,6 @@ class CameraRequest(private val ctx: Context) {
     fun getBackRequest(size: Size, provider : PreviewSurfaceProvider, listener: ImageDataListener): PreviewRequest.Builder {
         backSize = size
         backImageReader = PreviewImageReader(listener)
-        backImageReader2 = PreviewImageReader2(listener)
         val previewSize = Size(size.width, size.height)
         val picSize = Size(size.width, size.height)
         val builder = PreviewRequest.createBuilder()
@@ -124,12 +81,7 @@ class CameraRequest(private val ctx: Context) {
             .addPreviewSurfaceProvider(provider)
             .setPictureSize(picSize, ImageFormat.YUV_420_888)
             .setFlash(FlashState.OFF)
-            .setCustomerRequestStrategy(BackCustomerRequestStrategy())
-        if (ConfigKey.getBoolean(ConfigKey.SHOW_PRE_YUV, false)) {
-            builder.addSurfaceProvider(backImageReader)
-        }
-
-//            .addSurfaceProvider(backImageReader2)
+            .addSurfaceProvider(backImageReader)
 
         setTakeBuild(builder, listener)
 
@@ -144,7 +96,6 @@ class CameraRequest(private val ctx: Context) {
     fun getFontRequest(size: Size, provider : PreviewSurfaceProvider, listener: ImageDataListener): PreviewRequest.Builder {
         fontSize = size
         fontImageReader = PreviewImageReader(listener)
-        fontImageReader2 = PreviewImageReader2(listener)
         val previewSize = Size(size.width, size.height)
         val picSize = Size(size.width, size.height)
         val builder = PreviewRequest.createBuilder()
@@ -153,13 +104,7 @@ class CameraRequest(private val ctx: Context) {
             .addPreviewSurfaceProvider(provider)
             .setPictureSize(picSize, ImageFormat.JPEG)
             .setFlash(FlashState.OFF)
-            .setCustomerRequestStrategy(FontCustomerRequestStrategy())
-        if (ConfigKey.getBoolean(ConfigKey.SHOW_PRE_YUV, false)) {
-            builder.addSurfaceProvider(fontImageReader)
-        }
-
-
-//            .addSurfaceProvider(fontImageReader2)
+            .addSurfaceProvider(fontImageReader)
 
         setTakeBuild(builder, listener)
         return builder

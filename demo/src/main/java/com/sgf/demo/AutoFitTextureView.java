@@ -44,7 +44,7 @@ public class AutoFitTextureView extends TextureView {
         if (width < 0 || height < 0) {
             throw new IllegalArgumentException("Size cannot be negative.");
         }
-//        setRotation(270);
+        setRotation(270);
         mRatioWidth = width;
         mRatioHeight = height;
         KLog.d("=====>width : " + width + " height:" + height);

@@ -22,7 +22,7 @@
         <activity
             android:name=".activity.MainActivity"
             android:exported="true"
-
+            android:screenOrientation="landscape"
             >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -32,11 +32,13 @@
         </activity>
 
         <activity android:name=".activity.CameraActivity"
-
+            android:screenOrientation="landscape"
             />
         <activity android:name=".activity.DulCameraActivity"
             />
         <activity android:name=".activity.ConfigActivity"
+            android:launchMode="singleTask"
+            android:screenOrientation="landscape"
             />
 
         <activity android:name=".activity.GLCameraActivity"

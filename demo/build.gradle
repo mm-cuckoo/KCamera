@@ -33,6 +33,7 @@ android {
 dependencies {
 
     implementation project(path: ':KCamera')
+    implementation project(path: ':KGLCamera')
 //    implementation 'com.github.mm-sgf:KCamera:v1.0.0'
     implementation "androidx.core:core-ktx:$v_androidx_core_ktx"
     implementation "androidx.appcompat:appcompat:$v_androidx_appcompat"

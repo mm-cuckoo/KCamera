@@ -17,3 +17,4 @@ dependencyResolutionManagement {
 rootProject.name = "KCamera"
 include ':demo'
 include ':KCamera'
+include ':KGLCamera'

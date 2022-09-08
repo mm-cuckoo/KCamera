@@ -3,6 +3,7 @@ package com.sgf.demo;
 import android.app.Application;
 import android.content.Context;
 
+import com.sgf.demo.config.ConfigKey;
 import com.sgf.demo.utils.OrientationSensorManager;
 import com.sgf.kcamera.camera.info.CameraInfoHelper;
 import com.sgf.kcamera.log.KLog;
@@ -14,11 +15,14 @@ public class AppApplication extends Application {
 
     public static Context context;
 
+    public static String sCameraId = "0";
+
     @Override
     public void onCreate() {
         super.onCreate();
         KLog.setPrintTag("KCamera");
         KLog.setDebug(true);
+        ConfigKey.INSTANCE.init(this);
         CameraInfoHelper.getInstance().load(this, WorkerHandlerManager.getHandler(WorkerHandlerManager.Tag.T_TYPE_DATA));
         OrientationSensorManager.getInstance().init(this);
         context = this;

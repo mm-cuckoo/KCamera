@@ -3,9 +3,10 @@
   <component name="DesignSurface">
     <option name="filePathToZoomLevelMap">
       <map>
-        <entry key="demo/src/main/res/layout/activity_camera.xml" value="0.4244031830238727" />
+        <entry key="demo/src/main/res/layout/activity_camera.xml" value="0.2" />
         <entry key="demo/src/main/res/layout/activity_config.xml" value="0.33" />
         <entry key="demo/src/main/res/layout/activity_dul_camera.xml" value="0.15416666666666667" />
+        <entry key="demo/src/main/res/layout/activity_gl_camera.xml" value="0.1515625" />
         <entry key="demo/src/main/res/layout/activity_main.xml" value="0.15416666666666667" />
         <entry key="demo/src/main/res/layout/activity_yd_camera.xml" value="0.15416666666666667" />
         <entry key="demo/src/main/res/layout/dialog_config.xml" value="0.13802083333333334" />
@@ -19,5 +20,12 @@
   </component>
   <component name="ProjectType">
     <option name="id" value="Android" />
+  </component>
+  <component name="VisualizationToolProject">
+    <option name="state">
+      <ProjectState>
+        <option name="scale" value="0.1515625" />
+      </ProjectState>
+    </option>
   </component>
 </project>

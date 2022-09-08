@@ -23,17 +23,19 @@ class CaptureJPEGImageReader(private var listener: ImageDataListener? = null) : 
     }
 
     override fun onImageAvailable(reader: ImageReader) {
+        val captureTime = System.currentTimeMillis()
         val format = SimpleDateFormat("'/PIC_JPEG'_yyyyMMdd_HHmmss'.jpeg'", Locale.getDefault())
         val fileName = format.format(Date())
         val filePath = FilePathUtils.getRootPath()
         FilePathUtils.checkFolder(filePath)
         KLog.d("createImageReader: pic file path:" + (filePath + fileName))
-        ImageSaver(reader.acquireNextImage(), File(filePath + fileName), listener).run()
+        ImageSaver(reader.acquireNextImage(), File(filePath + fileName), captureTime, listener).run()
     }
 
     private class ImageSaver(
         private val mImage: Image,
         private val mFile: File,
+        private val captureTime : Long,
         private val listener: ImageDataListener? = null
     ) : Runnable {
         override fun run() {
@@ -41,7 +43,7 @@ class CaptureJPEGImageReader(private var listener: ImageDataListener? = null) : 
             val bytes = ByteArray(buffer.remaining())
             buffer[bytes]
             val bitmap = ImageUtil.getPicFromBytes(bytes)
-            listener?.onCaptureBitmap(ConfigKey.SHOW_JPEG_VALUE, bitmap, mFile.path)
+            listener?.onCaptureBitmap(ConfigKey.SHOW_JPEG_VALUE, bitmap, mFile.path, captureTime)
             var output: FileOutputStream? = null
             try {
                 output = FileOutputStream(mFile)

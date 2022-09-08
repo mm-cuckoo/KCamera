@@ -1,9 +1,23 @@
 package com.sgf.demo.config
 
+import android.annotation.SuppressLint
+import android.content.Context
+import android.content.SharedPreferences
+import android.util.Size
 import com.sgf.kcamera.log.KLog
 
+@SuppressLint("CommitPrefEdits")
 object ConfigKey {
 
+    private var sp : SharedPreferences ? = null
+
+    private const val SP_NAME = "kcamera_config"
+
+    val DEF_FONT_PREVIEW_SIZE = Size(1280,960)
+    val DEF_BACK_PREVIEW_SIZE = Size(1280,960)
+
+    const val FONT_PREVIEW_SIZE = "font_preview_size"
+    const val BACK_PREVIEW_SIZE = "back_preview_size"
 
     const val OPEN_SENSOR = "open_sensor"
 
@@ -22,34 +36,64 @@ object ConfigKey {
     const val SHOW_PNG_VALUE = 3
 
 
-    private val configMap = mutableMapOf<String, Any>()
+    fun init(context: Context) {
+        sp = context.getSharedPreferences(SP_NAME,Context.MODE_PRIVATE)
 
-    init {
-        configMap[SHOW_PRE_YUV] = true
-        configMap[TAKE_YUV_TO_JPEG_PIC] = true
-        configMap[SHOW_PIC_TYPE] = SHOW_YUV_OT_JPEG_VALUE
+        var takeType = getBoolean(TAKE_JPEG_PIC, false)
+        if (!takeType) {
+            takeType = getBoolean(TAKE_YUV_TO_JPEG_PIC, false)
+        }
+
+        if (!takeType) {
+            takeType = getBoolean(TAKE_PNG_PIC, false)
+        }
+
+        if (!takeType) {
+            pushBoolean(TAKE_YUV_TO_JPEG_PIC, true)
+        }
+
+        val showYUV = getBoolean(SHOW_PRE_YUV, false)
+        if (!showYUV) {
+            pushBoolean(SHOW_PRE_YUV, true)
+        }
+
+        val showPicType = getInt(SHOW_PIC_TYPE, -1)
+        if (showPicType < 0) {
+            pushInt(SHOW_PIC_TYPE, SHOW_YUV_OT_JPEG_VALUE)
+        }
     }
-
 
     fun pushBoolean(key: String, value : Boolean) {
         KLog.d("key:$key   value:$value")
-        configMap[key] = value
+        sp?.edit()?.putBoolean(key, value)?.apply()
     }
 
     fun getBoolean(key: String, def: Boolean) : Boolean {
-        return  configMap[key]?.let { it as Boolean } ?: def
+        return sp?.getBoolean(key, def)?: def
     }
 
     fun pushInt(key: String, value : Int) {
-        configMap[key] = value
+        sp?.edit()?.putInt(key, value)?.apply()
     }
 
     fun getInt(key: String, def: Int = 0) : Int {
-        return  configMap[key]?.let { it as Int } ?: def
+        return sp?.getInt(key, def)?: def
     }
 
-    fun remove(key: String) {
-        configMap.remove(key)
+    fun putSize(key : String, value: Size)  {
+        val putValue = "${value.width}*${value.height}"
+        sp?.edit()?.putString(key, putValue)?.apply()
+    }
+
+    fun getSize(key: String, def:Size) : Size {
+        val value = sp?.getString(key, "")
+        if (value.isNullOrEmpty()) {
+            return def
+        } else {
+            val valueTmp = value.split("*")
+            return Size(valueTmp[0].toInt(), valueTmp[1].toInt())
+        }
+
     }
 
 }

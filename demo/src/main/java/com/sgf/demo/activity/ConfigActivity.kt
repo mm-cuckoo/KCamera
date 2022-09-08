@@ -1,20 +1,44 @@
 package com.sgf.demo.activity
 
 import android.os.Bundle
+import android.util.Size
 import android.widget.Button
 import android.widget.CheckBox
 import android.widget.RadioGroup
+import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import com.sgf.demo.R
 import com.sgf.demo.config.ConfigKey
+import com.sgf.demo.config.SizeSelectDialog
 
 class ConfigActivity : AppCompatActivity() {
+
+    private lateinit var fontPreviewSize : TextView
+    private lateinit var backPreviewSize : TextView
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_config)
 
+        fontPreviewSize = findViewById(R.id.font_preivew_size)
+        backPreviewSize = findViewById(R.id.back_preivew_size)
+
+        val defFontSize = ConfigKey.getSize(ConfigKey.FONT_PREVIEW_SIZE, ConfigKey.DEF_FONT_PREVIEW_SIZE)
+        fontPreviewSize.text = "预览,YUV,拍照 : ${defFontSize.width} * ${defFontSize.height}"
+
+        val defBackSize = ConfigKey.getSize(ConfigKey.BACK_PREVIEW_SIZE, ConfigKey.DEF_BACK_PREVIEW_SIZE)
+        backPreviewSize.text = "预览,YUV,拍照 : ${defBackSize.width} * ${defBackSize.height}"
+
+
         findViewById<Button>(R.id.btn_ok).setOnClickListener {
             finish()
+        }
+
+        findViewById<Button>(R.id.btn_change_font_preview_size).setOnClickListener {
+            showDialog("1")
+        }
+
+        findViewById<Button>(R.id.btn_change_back_preview_size).setOnClickListener {
+            showDialog("0")
         }
 
         val preYuv = findViewById<CheckBox>(R.id.cb_show_pre_yuv)
@@ -90,4 +114,27 @@ class ConfigActivity : AppCompatActivity() {
             }
         }
     }
+
+    private fun showDialog(cameraId: String) {
+        val ft = supportFragmentManager.beginTransaction()
+        val prev = supportFragmentManager.findFragmentByTag("dialog")
+        if (prev != null) {
+            ft.remove(prev)
+        }
+        ft.addToBackStack(null)
+
+        // Create and show the dialog.
+        val newFragment = SizeSelectDialog(cameraId) {
+            if (cameraId == "0") {
+                backPreviewSize.text = "预览,YUV,拍照 : ${it.width} * ${it.height}"
+                ConfigKey.putSize(ConfigKey.BACK_PREVIEW_SIZE, it)
+            } else if (cameraId == "1") {
+                fontPreviewSize.text = "预览,YUV,拍照 : ${it.width} * ${it.height}"
+                ConfigKey.putSize(ConfigKey.FONT_PREVIEW_SIZE, it)
+            }
+
+        }
+        newFragment.show(ft, "dialog")
+    }
+
 }
