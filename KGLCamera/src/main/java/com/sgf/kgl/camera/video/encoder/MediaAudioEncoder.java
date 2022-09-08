@@ -1,0 +1,208 @@
+package com.sgf.kgl.camera.video.encoder;
+
+import android.annotation.SuppressLint;
+import android.media.AudioFormat;
+import android.media.AudioRecord;
+import android.media.MediaCodec;
+import android.media.MediaCodecInfo;
+import android.media.MediaCodecList;
+import android.media.MediaFormat;
+import android.media.MediaRecorder;
+
+import com.sgf.kcamera.log.KLog;
+
+import java.io.IOException;
+import java.nio.ByteBuffer;
+
+public class MediaAudioEncoder extends MediaEncoder {
+
+	private static final String MIME_TYPE = "audio/mp4a-latm";
+    private static final int SAMPLE_RATE = 44100;	// 44.1[KHz] is only setting guaranteed to be available on all devices.
+    private static final int BIT_RATE = 64000;
+	public static final int SAMPLES_PER_FRAME = 1024;	// AAC, bytes/frame/channel
+	public static final int FRAMES_PER_BUFFER = 25; 	// AAC, frame/buffer/sec
+
+    private AudioThread mAudioThread = null;
+
+	public MediaAudioEncoder(final MediaMuxerWrapper muxer, final MediaEncoderListener listener) {
+		super(muxer, listener);
+	}
+
+	@Override
+	protected void prepare() throws IOException {
+		KLog.i( "prepare:");
+        mTrackIndex = -1;
+        mMuxerStarted = mIsEOS = false;
+        // prepare MediaCodec for AAC encoding of audio data from inernal mic.
+        final MediaCodecInfo audioCodecInfo = selectAudioCodec(MIME_TYPE);
+        if (audioCodecInfo == null) {
+			KLog.e( "Unable to find an appropriate codec for " + MIME_TYPE);
+            return;
+        }
+		KLog.i( "selected codec: " + audioCodecInfo.getName());
+
+        final MediaFormat audioFormat = MediaFormat.createAudioFormat(MIME_TYPE, SAMPLE_RATE, 1);
+		audioFormat.setInteger(MediaFormat.KEY_AAC_PROFILE, MediaCodecInfo.CodecProfileLevel.AACObjectLC);
+		audioFormat.setInteger(MediaFormat.KEY_CHANNEL_MASK, AudioFormat.CHANNEL_IN_MONO);
+		audioFormat.setInteger(MediaFormat.KEY_BIT_RATE, BIT_RATE);
+		audioFormat.setInteger(MediaFormat.KEY_CHANNEL_COUNT, 1);
+//		audioFormat.setLong(MediaFormat.KEY_MAX_INPUT_SIZE, inputFile.length());
+//      audioFormat.setLong(MediaFormat.KEY_DURATION, (long)durationInMs );
+		KLog.i( "format: " + audioFormat);
+        mMediaCodec = MediaCodec.createEncoderByType(MIME_TYPE);
+        mMediaCodec.configure(audioFormat, null, null, MediaCodec.CONFIGURE_FLAG_ENCODE);
+        mMediaCodec.start();
+		KLog.i( "prepare finishing");
+        if (mListener != null) {
+        	try {
+        		mListener.onPrepared(this);
+        	} catch (final Exception e) {
+				KLog.e( "prepare:" + e.getMessage());
+        	}
+        }
+	}
+
+    @Override
+	protected void startRecording() {
+		super.startRecording();
+		// create and execute audio capturing thread using internal mic
+		if (mAudioThread == null) {
+	        mAudioThread = new AudioThread();
+			mAudioThread.start();
+		}
+	}
+
+	@Override
+    protected void release() {
+		mAudioThread = null;
+		super.release();
+    }
+
+	private static final int[] AUDIO_SOURCES = new int[] {
+		MediaRecorder.AudioSource.MIC,
+		MediaRecorder.AudioSource.DEFAULT,
+		MediaRecorder.AudioSource.CAMCORDER,
+		MediaRecorder.AudioSource.VOICE_COMMUNICATION,
+		MediaRecorder.AudioSource.VOICE_RECOGNITION,
+	};
+
+	/**
+	 * Thread to capture audio data from internal mic as uncompressed 16bit PCM data
+	 * and write them to the MediaCodec encoder
+	 */
+    private class AudioThread extends Thread {
+    	@SuppressLint("MissingPermission")
+		@Override
+    	public void run() {
+    		android.os.Process.setThreadPriority(android.os.Process.THREAD_PRIORITY_URGENT_AUDIO);
+    		int cnt = 0;
+    		try {
+				final int min_buffer_size = AudioRecord.getMinBufferSize(
+					SAMPLE_RATE, AudioFormat.CHANNEL_IN_MONO,
+					AudioFormat.ENCODING_PCM_16BIT);
+				int buffer_size = SAMPLES_PER_FRAME * FRAMES_PER_BUFFER;
+				if (buffer_size < min_buffer_size)
+					buffer_size = ((min_buffer_size / SAMPLES_PER_FRAME) + 1) * SAMPLES_PER_FRAME * 2;
+
+				AudioRecord audioRecord = null;
+				for (final int source : AUDIO_SOURCES) {
+					try {
+						audioRecord = new AudioRecord(
+							source, SAMPLE_RATE,
+							AudioFormat.CHANNEL_IN_MONO, AudioFormat.ENCODING_PCM_16BIT, buffer_size);
+	    	            if (audioRecord.getState() != AudioRecord.STATE_INITIALIZED)
+	    	            	audioRecord = null;
+					} catch (final Exception e) {
+						audioRecord = null;
+					}
+					if (audioRecord != null) break;
+				}
+				if (audioRecord != null) {
+		            try {
+						if (mIsCapturing) {
+							KLog.i( "AudioThread:start audio recording");
+							final ByteBuffer buf = ByteBuffer.allocateDirect(SAMPLES_PER_FRAME);
+			                int readBytes;
+			                audioRecord.startRecording();
+			                try {
+					    		for (; mIsCapturing && !mRequestStop && !mIsEOS ;) {
+					    			// read audio data from internal mic
+									buf.clear();
+					    			readBytes = audioRecord.read(buf, SAMPLES_PER_FRAME);
+					    			if (readBytes > 0) {
+					    			    // set audio data to encoder
+										buf.position(readBytes);
+										buf.flip();
+					    				encode(buf, readBytes, getPTSUs());
+					    				frameAvailableSoon();
+					    				cnt++;
+					    			}
+					    		}
+			    				frameAvailableSoon();
+			                } finally {
+			                	audioRecord.stop();
+			                }
+		            	}
+		            } finally {
+		            	audioRecord.release();
+		            }
+				} else {
+					KLog.e( "failed to initialize AudioRecord");
+				}
+    		} catch (final Exception e) {
+				KLog.e( "AudioThread#run" + e.getMessage());
+    		}
+			if (cnt == 0) {
+				final ByteBuffer buf = ByteBuffer.allocateDirect(SAMPLES_PER_FRAME);
+				for (int i = 0; mIsCapturing && (i < 5); i++) {
+					buf.position(SAMPLES_PER_FRAME);
+					buf.flip();
+					try {
+						encode(buf, SAMPLES_PER_FRAME, getPTSUs());
+						frameAvailableSoon();
+					} catch (final Exception e) {
+						break;
+					}
+					synchronized(this) {
+						try {
+							wait(50);
+						} catch (final InterruptedException e) {
+						}
+					}
+				}
+			}
+			KLog.i( "AudioThread:finished");
+    	}
+    }
+
+    /**
+     * select the first codec that match a specific MIME type
+     * @param mimeType
+     * @return
+     */
+    private static final MediaCodecInfo selectAudioCodec(final String mimeType) {
+		KLog.i(  "selectAudioCodec:");
+
+    	MediaCodecInfo result = null;
+    	// get the list of available codecs
+        final int numCodecs = MediaCodecList.getCodecCount();
+LOOP:	for (int i = 0; i < numCodecs; i++) {
+        	final MediaCodecInfo codecInfo = MediaCodecList.getCodecInfoAt(i);
+            if (!codecInfo.isEncoder()) {	// skipp decoder
+                continue;
+            }
+            final String[] types = codecInfo.getSupportedTypes();
+            for (int j = 0; j < types.length; j++) {
+//				KLog.e( "supportedType:" + codecInfo.getName() + ",MIME=" + types[j]);
+                if (types[j].equalsIgnoreCase(mimeType)) {
+                	if (result == null) {
+                		result = codecInfo;
+               			break LOOP;
+                	}
+                }
+            }
+        }
+   		return result;
+    }
+
+}
