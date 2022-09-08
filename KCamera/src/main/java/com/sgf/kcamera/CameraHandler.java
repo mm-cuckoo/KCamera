@@ -61,6 +61,7 @@ public class CameraHandler {
         openParams.put(KParams.Key.CAMERA_ID, mCameraId.ID);
         openParams.put(KParams.Key.FLASH_STATE, request.getFlashState());
         openParams.put(KParams.Key.IMAGE_READER_PROVIDERS, request.getSurfaceProviders());
+        openParams.put(KParams.Key.CUSTOMER_REQUEST_STRATEGY, request.getCustomerRequestStrategy());
 
         // 切换Camera 信息管理中的 Camera 信息， 如前置camera  或 后置Camera
         mCameraInfoManager.initCameraInfo(request.getCameraId());
@@ -147,6 +148,12 @@ public class CameraHandler {
             configParams.put(KParams.Key.AF_TRIGGER, afTouchXy);
         }
 
+        KCustomerRequestStrategy customerRequestStrategy = request.getCustomerRequestStrategy();
+        if (customerRequestStrategy != null) {
+            // 设置自定义参数
+            configParams.put(KParams.Key.CUSTOMER_REQUEST_STRATEGY, customerRequestStrategy);
+        }
+
         configParams.put(KParams.Key.RESET_FOCUS, request.isResetFocus());
 
         KLog.d("CameraRepeating==>" + configParams);
@@ -194,6 +201,7 @@ public class CameraHandler {
         }
 
         KParams captureParams = new KParams();
+        captureParams.put(KParams.Key.CAMERA_ID, mCameraId.ID);
         captureParams.put(KParams.Key.CAPTURE_CAN_TRIGGER_AF, mConfig.getConfig().captureCanTriggerAf());
         int sensorOrientation = mCameraInfoManager.getSensorOrientation();
         int picOrientation = mConfig.getConfig().getPictureOrientation(mCameraId,sensorOrientation);

@@ -7,6 +7,7 @@ import android.hardware.camera2.params.MeteringRectangle;
 import android.util.Pair;
 import android.view.Surface;
 
+import com.sgf.kcamera.KCustomerRequestStrategy;
 import com.sgf.kcamera.KParams;
 import com.sgf.kcamera.business.session.callback.CaptureCallback;
 import com.sgf.kcamera.business.session.callback.PreviewCallback;
@@ -58,9 +59,13 @@ public class CaptureSessionManagerImpl extends BaseCaptureSessionManager {
         return Observable.create((ObservableOnSubscribe<KParams>) emitter -> {
             CaptureRequest.Builder previewBuilder = getPreviewBuilder();
             mFocusHelper.init(repeatingParams.get(KParams.Key.PREVIEW_SIZE));
+            KCustomerRequestStrategy requestStrategy = repeatingParams.get(KParams.Key.CUSTOMER_REQUEST_STRATEGY);
+            if (requestStrategy != null) {
+                requestStrategy.onBuildRequest(previewBuilder);
+            }
+
             mPreviewCaptureCallback.applyPreview(previewBuilder, emitter);
             mSessionRequestManager.applyPreviewRequest(previewBuilder);
-//            previewBuilder.set(CaptureRequest.CONTROL_AE_TARGET_FPS_RANGE, new Range<>(28, 30));
             applyPreviewRequest(previewBuilder, repeatingParams);
             repeatingParams.put(KParams.Key.REQUEST_BUILDER, previewBuilder);
             repeatingParams.put(KParams.Key.CAPTURE_CALLBACK, mPreviewCaptureCallback);
@@ -103,9 +108,18 @@ public class CaptureSessionManagerImpl extends BaseCaptureSessionManager {
             flashRepeatingRequest(getPreviewBuilder(), requestParams);
             zoomRepeatingRequest(getPreviewBuilder(),requestParams);
             evRepeatingRequest(getPreviewBuilder(), requestParams);
+            setCustomerRequestStrategy(getPreviewBuilder(), requestParams);
             afTriggerRepeatingRequest(getPreviewBuilder(), requestParams);
             resetFocusRepeatingRequest(getPreviewBuilder(), requestParams);
         });
+    }
+
+    private void setCustomerRequestStrategy(CaptureRequest.Builder builder, KParams requestParams) throws CameraAccessException {
+        KCustomerRequestStrategy requestStrategy = requestParams.get(KParams.Key.CUSTOMER_REQUEST_STRATEGY);
+        if (requestStrategy != null) {
+            requestStrategy.onBuildRequest(builder);
+            getCameraSession().onRepeatingRequest(requestParams);
+        }
     }
 
     private void resetFocusRepeatingRequest(CaptureRequest.Builder builder, KParams requestParams) throws CameraAccessException {
@@ -171,6 +185,11 @@ public class CaptureSessionManagerImpl extends BaseCaptureSessionManager {
         KLog.i("capture params:" + captureParams);
         return Observable.create((ObservableOnSubscribe<KParams>) emitter -> {
             CaptureRequest.Builder builder = getCaptureBuilder();
+            KCustomerRequestStrategy requestStrategy = captureParams.get(KParams.Key.CUSTOMER_REQUEST_STRATEGY);
+            if (requestStrategy != null) {
+                requestStrategy.onBuildRequest(builder);
+            }
+
             builder.set(CaptureRequest.JPEG_ORIENTATION, captureParams.get(KParams.Key.PIC_ORIENTATION, 0));
             mSessionRequestManager.applyAllRequest(builder);
             mCaptureCallback.prepareCapture(builder, emitter);

@@ -67,6 +67,12 @@ public class KCamera {
         return mCameraHandler.getEvRange();
     }
 
+    public final void setCustomRequest(KCustomerRequestStrategy strategy) {
+        RepeatRequest.Builder builder = RepeatRequest.createBuilder();
+        builder.setCustomerRequestStrategy(strategy);
+        mCameraHandler.onCameraRepeating(builder.builder());
+    }
+
     public final Range<Integer> getEvRange(CameraID cameraID) {
         return mCameraInfoManager.getEvRange(cameraID);
     }

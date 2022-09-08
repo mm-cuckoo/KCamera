@@ -5,6 +5,7 @@ import android.util.Size;
 import androidx.annotation.NonNull;
 
 import com.sgf.kcamera.CameraID;
+import com.sgf.kcamera.KCustomerRequestStrategy;
 import com.sgf.kcamera.KParams;
 import com.sgf.kcamera.surface.PreviewSurfaceProvider;
 import com.sgf.kcamera.surface.SurfaceProvider;
@@ -15,6 +16,7 @@ import java.util.List;
 public class PreviewRequest {
     private final List<SurfaceProvider> mSurfaceProviders = new ArrayList<>();
     private final List<PreviewSurfaceProvider> mPreviewSurfaceProviders = new ArrayList<>();
+    private final KCustomerRequestStrategy mKCustomerRequestStrategy;
     private final CameraID mCameraId;
     private final Size mPreviewSize;
     private final Size mPictureSize;
@@ -31,6 +33,7 @@ public class PreviewRequest {
         mPreviewSize = builder.mPreviewSize;
         mFlashState = builder.mFlashState;
         mZoom = builder.mZoom;
+        mKCustomerRequestStrategy = builder.mKCustomerRequestStrategy;
         checkCameraId();
     }
 
@@ -72,6 +75,9 @@ public class PreviewRequest {
         return mFlashState;
     }
 
+    public KCustomerRequestStrategy getCustomerRequestStrategy() {
+        return mKCustomerRequestStrategy;
+    }
     public static Builder createBuilder() {
         return new Builder();
     }
@@ -79,6 +85,7 @@ public class PreviewRequest {
     public static class Builder {
         private final List<SurfaceProvider> mSurfaceProviders = new ArrayList<>();
         private final List<PreviewSurfaceProvider> mPreviewSurfaces = new ArrayList<>();
+        private KCustomerRequestStrategy mKCustomerRequestStrategy;
         private CameraID mCameraId = CameraID.BACK;
         private Size mPreviewSize;
         private Size mPictureSize;
@@ -129,6 +136,11 @@ public class PreviewRequest {
 
         public Builder addSurfaceProvider(SurfaceProvider provider){
             mSurfaceProviders.add(provider);
+            return this;
+        }
+
+        public Builder setCustomerRequestStrategy(KCustomerRequestStrategy strategy) {
+            mKCustomerRequestStrategy = strategy;
             return this;
         }
 

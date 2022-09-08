@@ -126,6 +126,7 @@ public class KParams {
         public static final Key<Integer> CLOSE_CAMERA_STATUS = new Key<>("close_camera_status"); // 1 close device , 0 device null
         public static final Key<Boolean> CAPTURE_CAN_TRIGGER_AF = new Key<>("capture_can_trigger_af"); // 1 close device , 0 device null
 
+        public static final Key<KCustomerRequestStrategy> CUSTOMER_REQUEST_STRATEGY = new Key<>("customer_request_strategy");
 
         public final String NAME;
         public Key(String name) {

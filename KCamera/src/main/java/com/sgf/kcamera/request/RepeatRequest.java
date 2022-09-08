@@ -3,12 +3,15 @@ package com.sgf.kcamera.request;
 
 import android.util.Pair;
 
+import com.sgf.kcamera.KCustomerRequestStrategy;
+
 public class RepeatRequest {
     private final Integer mEv;
     private final Float mZoomSize;
     private final Integer mFlashState;
     private final Pair<Float, Float> mAfTouchXY;
     private final boolean mIsResetFocus;
+    private final KCustomerRequestStrategy mKCustomerRequestStrategy;
 
     private RepeatRequest(Builder builder) {
         mEv = builder.mEv;
@@ -16,6 +19,7 @@ public class RepeatRequest {
         mFlashState = builder.mFlashState;
         mAfTouchXY = builder.mAfTouchXY;
         mIsResetFocus = builder.mIsResetFocus;
+        mKCustomerRequestStrategy = builder.mKCustomerRequestStrategy;
     }
 
     public Float getZoomSize() {
@@ -34,6 +38,10 @@ public class RepeatRequest {
         return mAfTouchXY;
     }
 
+    public KCustomerRequestStrategy getCustomerRequestStrategy() {
+        return mKCustomerRequestStrategy;
+    }
+
     public boolean isResetFocus() {
         return mIsResetFocus;
     }
@@ -48,6 +56,7 @@ public class RepeatRequest {
         private Float mZoomSize;
         private Pair<Float, Float> mAfTouchXY;
         private boolean mIsResetFocus = false;
+        private KCustomerRequestStrategy mKCustomerRequestStrategy;
 
         public Builder setFlash(FlashState flashState){
             mFlashState = flashState.getState();
@@ -70,6 +79,11 @@ public class RepeatRequest {
 
         public Builder resetFocus() {
             mIsResetFocus = true;
+            return this;
+        }
+
+        public Builder setCustomerRequestStrategy(KCustomerRequestStrategy strategy) {
+            mKCustomerRequestStrategy = strategy;
             return this;
         }
 
