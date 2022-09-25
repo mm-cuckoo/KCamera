@@ -5,8 +5,9 @@ import android.hardware.camera2.CaptureRequest;
 import com.sgf.kcamera.KCustomerRequestStrategy;
 
 public class BackCustomerRequestStrategy implements KCustomerRequestStrategy {
+
     @Override
-    public void onBuildRequest(CaptureRequest.Builder builder) {
+    public void onBuildRequest(String cameraId, CaptureRequest.Builder builder) {
 
     }
 }

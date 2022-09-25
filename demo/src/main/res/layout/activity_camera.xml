@@ -151,6 +151,7 @@
         android:text="设置参数"
         android:layout_marginStart="2dp"
         android:layout_marginEnd="2dp"
+        android:visibility="gone"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         app:layout_constraintTop_toTopOf="parent"
@@ -162,6 +163,7 @@
         android:layout_width="200dp"
         android:layout_height="wrap_content"
         android:inputType="number"
+        android:visibility="gone"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toEndOf="@+id/btn_set_custom"
         />
@@ -259,6 +261,24 @@
                 android:id="@+id/btn_custom"
                 android:text="前摄13M"
                 android:visibility="gone"
+                android:layout_marginStart="2dp"
+                android:layout_marginEnd="2dp"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="wrap_content"/>
+
+            <Button
+                android:id="@+id/btn_start_video"
+                android:text="开始录像"
+                android:layout_marginStart="2dp"
+                android:layout_marginEnd="2dp"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="wrap_content"/>
+
+            <Button
+                android:id="@+id/btn_stop_video"
+                android:text="结束录像"
                 android:layout_marginStart="2dp"
                 android:layout_marginEnd="2dp"
                 android:layout_width="0dp"

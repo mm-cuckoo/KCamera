@@ -5,14 +5,10 @@ import android.content.Intent
 import android.graphics.Bitmap
 import android.hardware.camera2.CaptureRequest
 import android.hardware.camera2.CaptureResult
-import android.os.Build
-import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
+import android.os.*
 import android.view.MotionEvent
 import android.view.View
 import android.widget.*
-import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.constraintlayout.widget.ConstraintLayout
 import com.sgf.demo.*
@@ -74,7 +70,15 @@ class CameraActivity : AppCompatActivity() , CaptureStateListener,
     private var isReCapturing = false
 
     private val handler = Handler(Looper.getMainLooper())
+    private fun getVideoPath() : String {
+        val format = SimpleDateFormat("'/video'_yyyyMMdd_HHmmss'.mp4'", Locale.getDefault())
+        val fileName = format.format(Date())
+        val filePath = FilePathUtils.getRootPath() + "/video"
+        FilePathUtils.checkFolder(filePath)
 
+
+        return filePath + fileName
+    }
     @SuppressLint("ClickableViewAccessibility")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -142,7 +146,7 @@ class CameraActivity : AppCompatActivity() , CaptureStateListener,
 
         findViewById<Button>(R.id.btn_set_custom).setOnClickListener {
             customValue.text?.let { ed->
-                kCamera.setCustomRequest {crb ->
+                kCamera.setCustomRequest { cameraId, builder ->
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
 //                        val customerKey: CaptureRequest.Key<Int> = CaptureRequest.Key<Int>(
 //                            "XXXXXX",
@@ -221,6 +225,30 @@ class CameraActivity : AppCompatActivity() , CaptureStateListener,
                 isReCapturing = false
             }
         }
+
+        findViewById<Button>(R.id.btn_start_video).setOnClickListener {
+            if (cameraEnable && !capturing) {
+                kCamera.cameraId?.let { id->
+                    if (id == "0") {
+                        glPreview.setVideoSize(cameraRequest.getBackSize().width, cameraRequest.getBackSize().height)
+                    } else {
+                        glPreview.setVideoSize(cameraRequest.getFontSize().width, cameraRequest.getFontSize().height)
+                    }
+                    videoRecordManager.startRecording(getVideoPath())
+                }
+            } else {
+                Toast.makeText(this, "设备没有 Ready ", Toast.LENGTH_SHORT).show()
+            }
+        }
+
+        findViewById<Button>(R.id.btn_stop_video).setOnClickListener {
+            if (cameraEnable && !capturing) {
+                videoRecordManager.stopRecording()
+                Toast.makeText(this, "vdeo path: ${getVideoPath()} ", Toast.LENGTH_SHORT).show()
+            } else {
+                Toast.makeText(this, "设备没有 Ready ", Toast.LENGTH_SHORT).show()
+            }
+        }
     }
 
     var startTime : Long = 0;
@@ -257,10 +285,20 @@ class CameraActivity : AppCompatActivity() , CaptureStateListener,
 
         }
 
+        if (ConfigKey.getBoolean(ConfigKey.TAKE_JPEG_PIC, false) ||
+            ConfigKey.getBoolean(ConfigKey.TAKE_YUV_TO_JPEG_PIC, false) ||
+            ConfigKey.getBoolean(ConfigKey.TAKE_PNG_PIC, false)) {
+            findViewById<Button>(R.id.btn_capture_pic).visibility = View.VISIBLE
+        } else {
+            findViewById<Button>(R.id.btn_capture_pic).visibility = View.GONE
+
+        }
+
     }
 
     override fun onPause() {
         super.onPause()
+        videoRecordManager.stopRecording()
         handler.removeCallbacksAndMessages(null)
         orientationFilter.onPause()
         kCamera.closeCamera()
