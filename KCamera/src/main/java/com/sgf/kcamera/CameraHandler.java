@@ -36,6 +36,7 @@ public class CameraHandler {
     private final ConfigWrapper mConfig;
     private final SurfaceManager mSurfaceManager;
     private CameraStateListener mCameraStateListener;
+    private KCustomerRequestStrategy requestStrategy;
     private CameraID mCameraId;
 
     public CameraHandler(Context context, ConfigWrapper configWrapper) {
@@ -62,6 +63,7 @@ public class CameraHandler {
         openParams.put(KParams.Key.FLASH_STATE, request.getFlashState());
         openParams.put(KParams.Key.IMAGE_READER_PROVIDERS, request.getSurfaceProviders());
         openParams.put(KParams.Key.CUSTOMER_REQUEST_STRATEGY, request.getCustomerRequestStrategy());
+        requestStrategy = request.getCustomerRequestStrategy();
 
         // 切换Camera 信息管理中的 Camera 信息， 如前置camera  或 后置Camera
         mCameraInfoManager.initCameraInfo(request.getCameraId());
@@ -123,7 +125,15 @@ public class CameraHandler {
     }
 
     public final void onCameraRepeating(@NonNull RepeatRequest request) {
+
+        if (mCameraId == null) {
+            KLog.e("camera id is null , check camera is closed ");
+            return;
+        }
+
+
         KParams configParams = new KParams();
+        configParams.put(KParams.Key.CAMERA_ID, mCameraId.ID);
         Float zoomSize = request.getZoomSize();
         if (zoomSize != null) {
             // 设置zoom
@@ -206,6 +216,7 @@ public class CameraHandler {
         int sensorOrientation = mCameraInfoManager.getSensorOrientation();
         int picOrientation = mConfig.getConfig().getPictureOrientation(mCameraId,sensorOrientation);
         captureParams.put(KParams.Key.PIC_ORIENTATION, picOrientation); // 设置拍照图片jpeg 方向
+        captureParams.put(KParams.Key.CUSTOMER_REQUEST_STRATEGY, requestStrategy);
         mCameraBusiness.capture(captureParams).subscribe(new CameraObserver<KParams>(){
             @Override
             public void onNext(@NonNull KParams resultParams) {

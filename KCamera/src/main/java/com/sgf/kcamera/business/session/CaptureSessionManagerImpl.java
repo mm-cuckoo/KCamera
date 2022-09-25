@@ -61,7 +61,8 @@ public class CaptureSessionManagerImpl extends BaseCaptureSessionManager {
             mFocusHelper.init(repeatingParams.get(KParams.Key.PREVIEW_SIZE));
             KCustomerRequestStrategy requestStrategy = repeatingParams.get(KParams.Key.CUSTOMER_REQUEST_STRATEGY);
             if (requestStrategy != null) {
-                requestStrategy.onBuildRequest(previewBuilder);
+                String cameraId = repeatingParams.get(KParams.Key.CAMERA_ID);
+                requestStrategy.onBuildRequest(cameraId, previewBuilder);
             }
 
             mPreviewCaptureCallback.applyPreview(previewBuilder, emitter);
@@ -117,7 +118,9 @@ public class CaptureSessionManagerImpl extends BaseCaptureSessionManager {
     private void setCustomerRequestStrategy(CaptureRequest.Builder builder, KParams requestParams) throws CameraAccessException {
         KCustomerRequestStrategy requestStrategy = requestParams.get(KParams.Key.CUSTOMER_REQUEST_STRATEGY);
         if (requestStrategy != null) {
-            requestStrategy.onBuildRequest(builder);
+            String cameraId = requestParams.get(KParams.Key.CAMERA_ID);
+
+            requestStrategy.onBuildRequest(cameraId,builder);
             getCameraSession().onRepeatingRequest(requestParams);
         }
     }
@@ -187,7 +190,8 @@ public class CaptureSessionManagerImpl extends BaseCaptureSessionManager {
             CaptureRequest.Builder builder = getCaptureBuilder();
             KCustomerRequestStrategy requestStrategy = captureParams.get(KParams.Key.CUSTOMER_REQUEST_STRATEGY);
             if (requestStrategy != null) {
-                requestStrategy.onBuildRequest(builder);
+                String cameraId = captureParams.get(KParams.Key.CAMERA_ID);
+                requestStrategy.onBuildRequest(cameraId,builder);
             }
 
             builder.set(CaptureRequest.JPEG_ORIENTATION, captureParams.get(KParams.Key.PIC_ORIENTATION, 0));
