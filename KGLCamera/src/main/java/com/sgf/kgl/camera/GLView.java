@@ -8,6 +8,7 @@ import android.opengl.GLSurfaceView;
 import android.opengl.Matrix;
 import android.util.AttributeSet;
 import android.view.SurfaceHolder;
+import android.view.WindowManager;
 
 import com.sgf.kcamera.log.KLog;
 import com.sgf.kgl.camera.gl.GLDrawer2D;
@@ -26,6 +27,7 @@ public class GLView extends GLSurfaceView {
 
 	private final CameraSurfaceRenderer mRenderer;
 	private int mVideoWidth, mVideoHeight;
+	private int mDisplayRotation;
 
 	public interface GLSurfaceTextureListener {
 		void onSurfaceTextureAvailable(SurfaceTexture surface, int width, int height);
@@ -44,14 +46,16 @@ public class GLView extends GLSurfaceView {
 	public GLView(final Context context, final AttributeSet attrs, final int defStyle) {
 		super(context, attrs);
 		KLog.i("CameraGLView:");
-		mRenderer = new CameraSurfaceRenderer(this);
+		WindowManager windowManager = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
+		mDisplayRotation = windowManager.getDefaultDisplay().getRotation() * 90;
+		mRenderer = new CameraSurfaceRenderer(this, mDisplayRotation);
 		setEGLContextClientVersion(2);	// GLES 2.0, API >= 8
 		setRenderer(mRenderer);
 		setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);
+		mRenderer.requestRender();
 /*		// the frequency of refreshing of camera preview is at most 15 fps
 		// and RENDERMODE_WHEN_DIRTY is better to reduce power consumption
 		setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY); */
-
 	}
 
 	public void setSurfaceTextureListener(GLSurfaceTextureListener textureListener) {
@@ -61,11 +65,7 @@ public class GLView extends GLSurfaceView {
 	}
 
 	public void setMirrorView(boolean isMirror) {
-		if (isMirror) {
-			mRenderer.setMirror(1);
-		} else {
-			mRenderer.setMirror(0);
-		}
+		mRenderer.setMirror(isMirror);
 	}
 
 	public void stopDrawFrame() {
@@ -134,20 +134,22 @@ public class GLView extends GLSurfaceView {
 		private MediaVideoEncoder mVideoEncoder;
 		private GLSurfaceTextureListener mTextureListener;
 
-		private volatile int mMirror = 0;
+		private volatile boolean isMirror = false;
+		private int mRotation;
 
 		private final AtomicBoolean isRunning = new AtomicBoolean(true);
 
-		public CameraSurfaceRenderer(final GLView parent) {
-			KLog.i("CameraSurfaceRenderer:");
-			mWeakParent = new WeakReference<GLView>(parent);
+		public CameraSurfaceRenderer(final GLView parent, final int rotation) {
+			KLog.i("CameraSurfaceRenderer:rotation:" + rotation);
+			this.mRotation = rotation;
+			mWeakParent = new WeakReference<>(parent);
 			Matrix.setIdentityM(mMvpMatrix, 0);
 		}
 
-		public void setMirror(final int mirror) {
-			this.mMirror = mirror;
+		public void setMirror(final boolean isMirror) {
+			this.isMirror = isMirror;
 			if (mDrawer != null ) {
-				mDrawer.setMirror(mirror);
+				mDrawer.setMirror(isMirror);
 			}
 			isRunning.set(true);
 			requestRender();
@@ -180,11 +182,6 @@ public class GLView extends GLSurfaceView {
 			if (!extensions.contains("OES_EGL_image_external"))
 				throw new RuntimeException("This system does not support OES_EGL_image_external.");
 			// create textur ID
-//			if (mDrawer != null) {
-//				mDrawer.release();
-//				mSTexture.release();
-//				GLDrawer2D.deleteTex(hTex);
-//			}
 			hTex = GLDrawer2D.initTex();
 			// create SurfaceTexture with texture ID.
 			mSTexture = new SurfaceTexture(hTex);
@@ -193,9 +190,9 @@ public class GLView extends GLSurfaceView {
 			GLES20.glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 			final GLView parent = mWeakParent.get();
 			// create object for preview display
-			mDrawer = new GLDrawer2D();
+			mDrawer = new GLDrawer2D(mRotation);
 			mDrawer.setMatrix(mMvpMatrix, 0);
-			mDrawer.setMirror(mMirror);
+			mDrawer.setMirror(isMirror);
 
 			if (mTextureListener != null) {
 //				final CameraGLView parent = mWeakParent.get();
@@ -228,7 +225,6 @@ public class GLView extends GLSurfaceView {
 				mSTexture.release();
 				mSTexture = null;
 			}
-//			GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT);
 			if (this.mTextureListener != null) {
 				this.mTextureListener.onSurfaceTextureDestroyed();
 			}
@@ -245,10 +241,6 @@ public class GLView extends GLSurfaceView {
 		 */
 		@Override
 		public void onDrawFrame(final GL10 unused) {
-
-//			if (!isRunning.get()) {
-//				return;
-//			}
 
 			GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT);
 

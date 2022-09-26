@@ -5,6 +5,8 @@ import android.opengl.GLES20;
 import android.opengl.Matrix;
 import android.util.Log;
 
+import androidx.annotation.IntRange;
+
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
@@ -33,81 +35,115 @@ public class GLDrawer2D {
 			+ "precision mediump float;\n"
 			+ "uniform samplerExternalOES sTexture;\n"
 			+ "varying highp vec2 vTextureCoord;\n"
-			+ "uniform int mirrorFlag;"
+			+ "uniform int mirrorType;"
 			+ "void main() {\n"
 			+ " vec4 rgba = texture2D(sTexture, vTextureCoord);\n"
-			+ "	if(mirrorFlag == 1) {\n"
-			+ "  	rgba = texture2D(sTexture,vec2(1.0-vTextureCoord.x, vTextureCoord.y));\n"
+			+ "	if(mirrorType == 1) {\n"
+			+ "  	rgba = texture2D(sTexture,vec2(1.0-vTextureCoord.x,vTextureCoord.y));\n"
+			+ "  }\n"
+			+ "	else if(mirrorType == 2) {\n"
+			+ "  	rgba = texture2D(sTexture,vec2(vTextureCoord.x,1.0-vTextureCoord.y));\n"
 			+ "  }\n"
 			+ "  gl_FragColor = rgba;\n"
 			+ "}";
 
+
+	/**
+	 * a(-1,+1)              c(+1,+1)
+	 *
+	 * -----------------------------
+	 *
+	 *
+	 * b(-1,-1)              d(+1,-1)
+	 */
 	private static final float[] VERTICES = {
-			+1.0f, -1.0f,
+			-1.0f, +1.0f,
 			-1.0f, -1.0f,
 			+1.0f, +1.0f,
-			-1.0f, +1.0f,
+			+1.0f, -1.0f,
 	};
 
 	/**
-	 * a(-1,+1)              b(+1,+1)
-	 *
-	 * -------------------
+	 * a(0,1)              c(1,1)
 	 *
 	 *
-	 * c(-1,-1)              d(+1,-1)
+	 *
+	 * b(0,0)              d(1,0)
+	 * ---------------------------
+	 * 0  -> a, b, c, d
+	 * 90 -> c, a, d, b
+	 * 180-> d, c, b, a
+	 * 270-> b, d, a, c
 	 */
-//	private static final float[] VERTICES = {
-//		-1.0f, -1.0f,
-//		-1.0f, +1.0f,
-//		+1.0f, -1.0f,
-//		+1.0f, +1.0f,
-//	};
-//
-//	private static final float[] VERTICES = {
-//			-1.0f, -1.0f,
-//			-1.0f, +1.0f,
-//			+1.0f, -1.0f,
-//			+1.0f, +1.0f,
-//	};
-
-
-	/**
-	 * a(0,1)              b(1,1)
-	 *
-	 * -------------------
-	 *
-	 *
-	 * c(0,0)              d(1,0)
-	 */
-	private static final float[] TEXCOORD = {
+	//0
+	private static final float[] TEXCOORD_0 = {
+			0.0f, 1.0f,
 			0.0f, 0.0f,
+			1.0f, 1.0f,
+			1.0f, 0.0f,
+	};
+
+	//90
+	private static final float[] TEXCOORD_90 = {
+			1.0f, 1.0f,
 			0.0f, 1.0f,
 			1.0f, 0.0f,
+			0.0f, 0.0f,
+	};
+
+	//180
+	private static final float[] TEXCOORD_180 = {
+			1.0f, 0.0f,
+			1.0f, 1.0f,
+			0.0f, 0.0f,
+			0.0f, 1.0f,
+	};
+
+	//270
+	private static final float[] TEXCOORD_270 = {
+			0.0f, 0.0f,
+			1.0f, 0.0f,
+			0.0f, 1.0f,
 			1.0f, 1.0f,
 	};
+
+	private static float[] TEXCOORD = TEXCOORD_0;
+
 
 	private final FloatBuffer pVertex;
 	private final FloatBuffer pTexCoord;
 	private int hProgram;
-	int maPositionLoc;
-	int maTextureCoordLoc;
-	int muMVPMatrixLoc;
-	int muTexMatrixLoc;
-	int mirrorPtr;
+	private int maPositionLoc;
+	private int maTextureCoordLoc;
+	private int muMVPMatrixLoc;
+	private int muTexMatrixLoc;
+	private int mirrorTypePtr;
 	private final float[] mMvpMatrix = new float[16];
 
 	private static final int FLOAT_SZ = Float.SIZE / 8;
 	private static final int VERTEX_NUM = 4;
 	private static final int VERTEX_SZ = VERTEX_NUM * 2;
 
-	private static volatile int mirror = 0;
+
+	private static final int MIRROR_NONE = 0;
+	private static final int MIRROR_LANDSCAPE = 1;
+	private static final int MIRROR_PORTRAIT = 2;
+	private static volatile int mMirrorType = MIRROR_NONE;
+	private static volatile boolean isMirror = false;
+	private static volatile int mRotation = 0;
+
+
+	public GLDrawer2D() {
+		this(mRotation);
+	}
 
 	/**
 	 * Constructor
 	 * this should be called in GL context
 	 */
-	public GLDrawer2D() {
+	public GLDrawer2D(int rotation) {
+		mRotation = rotation;
+		initTexCoord(rotation);
 		pVertex = ByteBuffer.allocateDirect(VERTEX_SZ * FLOAT_SZ)
 				.order(ByteOrder.nativeOrder()).asFloatBuffer();
 		pVertex.put(VERTICES);
@@ -123,8 +159,7 @@ public class GLDrawer2D {
 		maTextureCoordLoc = GLES20.glGetAttribLocation(hProgram, "aTextureCoord");
 		muMVPMatrixLoc = GLES20.glGetUniformLocation(hProgram, "uMVPMatrix");
 		muTexMatrixLoc = GLES20.glGetUniformLocation(hProgram, "uTexMatrix");
-		mirrorPtr = GLES20.glGetUniformLocation(hProgram, "mirrorFlag");
-
+		mirrorTypePtr = GLES20.glGetUniformLocation(hProgram, "mirrorType");
 
 		Matrix.setIdentityM(mMvpMatrix, 0);
 		GLES20.glUniformMatrix4fv(muMVPMatrixLoc, 1, false, mMvpMatrix, 0);
@@ -135,8 +170,30 @@ public class GLDrawer2D {
 		GLES20.glEnableVertexAttribArray(maTextureCoordLoc);
 	}
 
-	public void setMirror(int mirror) {
-		GLDrawer2D.mirror = mirror;
+	private void initTexCoord(int rotation) {
+		switch (rotation) {
+			case 0:
+				TEXCOORD = TEXCOORD_0;
+				mMirrorType = MIRROR_PORTRAIT;
+				break;
+			case 90:
+				TEXCOORD = TEXCOORD_90;
+				mMirrorType = MIRROR_LANDSCAPE;
+				break;
+			case 180:
+				TEXCOORD = TEXCOORD_180;
+				mMirrorType = MIRROR_PORTRAIT;
+				break;
+			case 270:
+				TEXCOORD = TEXCOORD_270;
+				mMirrorType = MIRROR_LANDSCAPE;
+				break;
+		}
+	}
+
+
+	public void setMirror(boolean isMirror) {
+		GLDrawer2D.isMirror = isMirror;
 	}
 
 	/**
@@ -156,7 +213,11 @@ public class GLDrawer2D {
 	 */
 	public void draw(final int tex_id, final float[] tex_matrix) {
 		GLES20.glUseProgram(hProgram);
-		GLES20.glUniform1i(mirrorPtr, mirror);
+		if (GLDrawer2D.isMirror) {
+			GLES20.glUniform1i(mirrorTypePtr, mMirrorType);
+		} else {
+			GLES20.glUniform1i(mirrorTypePtr, MIRROR_NONE);
+		}
 		if (tex_matrix != null)
 			GLES20.glUniformMatrix4fv(muTexMatrixLoc, 1, false, tex_matrix, 0);
 		GLES20.glUniformMatrix4fv(muMVPMatrixLoc, 1, false, mMvpMatrix, 0);
@@ -167,12 +228,6 @@ public class GLDrawer2D {
 		GLES20.glUseProgram(0);
 	}
 
-	/**
-	 * Set model/view/projection transform matrix
-	 *
-	 * @param matrix
-	 * @param offset
-	 */
 	public void setMatrix(final float[] matrix, final int offset) {
 		if ((matrix != null) && (matrix.length >= offset + 16)) {
 			System.arraycopy(matrix, offset, mMvpMatrix, 0, 16);
@@ -216,7 +271,7 @@ public class GLDrawer2D {
 	 *
 	 * @param vss source of vertex shader
 	 * @param fss source of fragment shader
-	 * @return
+	 * @return status
 	 */
 	public static int loadShader(final String vss, final String fss) {
 		if (DEBUG) Log.v(TAG, "loadShader:");
