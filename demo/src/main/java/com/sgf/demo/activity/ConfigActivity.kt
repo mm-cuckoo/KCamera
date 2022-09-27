@@ -80,7 +80,6 @@ class ConfigActivity : AppCompatActivity() {
         val showGroup = findViewById<RadioGroup>(R.id.rg_show_group)
         when(ConfigKey.getInt(ConfigKey.SHOW_PIC_TYPE)) {
             ConfigKey.SHOW_JPEG_VALUE -> {
-//                val rbJpeg = showGroup.findViewById<RadioButton>(R.id.rb_show_jpeg)
                 showGroup.check(R.id.rb_show_jpeg)
             }
 
@@ -110,6 +109,32 @@ class ConfigActivity : AppCompatActivity() {
 
                 R.id.rb_show_png -> {
                     ConfigKey.pushInt(ConfigKey.SHOW_PIC_TYPE, ConfigKey.SHOW_PNG_VALUE)
+                }
+                R.id.rb_show_none -> {
+                    ConfigKey.pushInt(ConfigKey.SHOW_PIC_TYPE, ConfigKey.SHOW_NONE_VALUE)
+                }
+            }
+        }
+
+        val cameraIdGroup = findViewById<RadioGroup>(R.id.rg_camera_id_group)
+        when(ConfigKey.getInt(ConfigKey.CAMERA_ID_TYPE)) {
+            ConfigKey.FONT_CAMERA_ID -> {
+                cameraIdGroup.check(R.id.rb_front_camera)
+            }
+
+            ConfigKey.BACK_CAMERA_ID -> {
+                cameraIdGroup.check(R.id.rb_back_camera)
+            }
+        }
+
+        findViewById<RadioGroup>(R.id.rg_camera_id_group).setOnCheckedChangeListener { group, checkedId ->
+            when(checkedId) {
+                R.id.rb_front_camera -> {
+                    ConfigKey.pushInt(ConfigKey.CAMERA_ID_TYPE, ConfigKey.FONT_CAMERA_ID)
+                }
+
+                R.id.rb_show_yuv_to_jpeg -> {
+                    ConfigKey.pushInt(ConfigKey.CAMERA_ID_TYPE, ConfigKey.BACK_CAMERA_ID)
                 }
             }
         }

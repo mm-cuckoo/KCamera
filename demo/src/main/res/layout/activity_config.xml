@@ -31,7 +31,7 @@
         android:layout_height="1dp"/>
 
     <TextView
-        android:text="前摄"
+        android:text="前摄默认分辨率"
         android:textStyle="bold"
         android:layout_marginStart="10dp"
         android:layout_marginTop="10dp"
@@ -65,7 +65,7 @@
         android:layout_height="1dp"/>
 
     <TextView
-        android:text="后摄"
+        android:text="后摄默认分辨率"
         android:textStyle="bold"
         android:layout_marginStart="10dp"
         android:layout_marginTop="10dp"
@@ -206,6 +206,50 @@
         android:background="@color/light_grey"
         android:layout_width="match_parent"
         android:layout_height="1dp"/>
+
+    <TextView
+        android:text="默认打开"
+        android:layout_marginStart="10dp"
+        android:layout_marginTop="10dp"
+        android:textStyle="bold"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"/>
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <RadioGroup
+            android:id="@+id/rg_camera_id_group"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            >
+            <RadioButton
+                android:id="@+id/rb_front_camera"
+                android:text="前摄"
+                android:gravity="center_vertical"
+                android:layout_marginEnd="10dp"
+                android:layout_marginStart="10dp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"/>
+
+            <RadioButton
+                android:id="@+id/rb_back_camera"
+                android:text="后摄"
+                android:gravity="center_vertical"
+                android:layout_marginEnd="10dp"
+                android:layout_marginStart="10dp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"/>
+        </RadioGroup>
+    </LinearLayout>
+    <View
+        android:layout_marginEnd="10dp"
+        android:layout_marginStart="10dp"
+        android:background="@color/light_grey"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"/>
+
     <CheckBox
         android:id="@+id/cb_save_pre_image"
         android:layout_marginTop="10dp"

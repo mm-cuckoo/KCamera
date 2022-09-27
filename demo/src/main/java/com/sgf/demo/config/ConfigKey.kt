@@ -35,6 +35,10 @@ object ConfigKey {
     const val SHOW_YUV_OT_JPEG_VALUE = 2
     const val SHOW_PNG_VALUE = 3
 
+    const val CAMERA_ID_TYPE = "camera_id_type"
+    const val BACK_CAMERA_ID = 0
+    const val FONT_CAMERA_ID = 1
+
 
     fun init(context: Context) {
         sp = context.getSharedPreferences(SP_NAME,Context.MODE_PRIVATE)
@@ -60,6 +64,11 @@ object ConfigKey {
         val showPicType = getInt(SHOW_PIC_TYPE, -1)
         if (showPicType < 0) {
             pushInt(SHOW_PIC_TYPE, SHOW_YUV_OT_JPEG_VALUE)
+        }
+
+        val cameraIdType = getInt(CAMERA_ID_TYPE, -1)
+        if (cameraIdType < 0) {
+            pushInt(CAMERA_ID_TYPE, BACK_CAMERA_ID)
         }
     }
 

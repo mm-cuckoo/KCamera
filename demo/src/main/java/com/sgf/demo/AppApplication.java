@@ -15,8 +15,6 @@ public class AppApplication extends Application {
 
     public static Context context;
 
-    public static String sCameraId = "0";
-
     @Override
     public void onCreate() {
         super.onCreate();

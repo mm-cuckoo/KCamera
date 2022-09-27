@@ -61,33 +61,12 @@ class MainActivity : AppCompatActivity() {
 
         checkPermission()
         findViewById<Button>(R.id.btn_open_camera).setOnClickListener {
-
-            AppApplication.sCameraId = "1"
-            val intent = Intent(this, CameraActivity::class.java)
-            startActivity(intent)
-        }
-        findViewById<Button>(R.id.btn_open_back_camera).setOnClickListener {
-            AppApplication.sCameraId = "0"
             val intent = Intent(this, CameraActivity::class.java)
             startActivity(intent)
         }
 
         findViewById<Button>(R.id.btn_open_config).setOnClickListener {
             val intent = Intent(this, ConfigActivity::class.java)
-            startActivity(intent)
-        }
-
-//        findViewById<Button>(R.id.btn_open_camera).setOnClickListener {
-//            val intent = Intent(this, CameraActivity::class.java)
-//            startActivity(intent)
-//        }
-        findViewById<Button>(R.id.btn_open_dul_camera).setOnClickListener {
-            val intent = Intent(this, DulCameraActivity::class.java)
-            startActivity(intent)
-        }
-
-        findViewById<Button>(R.id.btn_open_gl_camera).setOnClickListener {
-            val intent = Intent(this, GLCameraActivity::class.java)
             startActivity(intent)
         }
     }

@@ -3,7 +3,6 @@ package com.sgf.demo.activity
 import android.annotation.SuppressLint
 import android.content.Intent
 import android.graphics.Bitmap
-import android.hardware.camera2.CaptureRequest
 import android.hardware.camera2.CaptureResult
 import android.os.*
 import android.view.MotionEvent
@@ -11,6 +10,7 @@ import android.view.View
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 import androidx.constraintlayout.widget.ConstraintLayout
+import androidx.constraintlayout.widget.Group
 import com.sgf.demo.*
 import com.sgf.demo.config.ConfigKey
 import com.sgf.demo.config.SizeSelectDialog
@@ -38,7 +38,6 @@ class CameraActivity : AppCompatActivity() , CaptureStateListener,
 
     private lateinit var preview : AutoFitTextureView
     private lateinit var glPreview : CameraGLView
-    private lateinit var surfaceView1 : AutoFitTextureView
 
 //    private lateinit var previewProvider : PreviewSurfaceProvider
 //    private lateinit var previewProvider2 : PreviewSurfaceProvider
@@ -51,7 +50,6 @@ class CameraActivity : AppCompatActivity() , CaptureStateListener,
     private lateinit var focusView : FocusView
 
     private lateinit var preYuvView : ImageView
-    private lateinit var preYuvView2 : ImageView
     private lateinit var picView : ImageView
     private lateinit var previewTextView : TextView
     private lateinit var picTextView : TextView
@@ -64,21 +62,13 @@ class CameraActivity : AppCompatActivity() , CaptureStateListener,
     private lateinit var videoRecordManager : VideoRecordManager
 
     private var cameraEnable = false
-    @Volatile
-    private var capturing = false
-    @Volatile
-    private var isReCapturing = false
 
     private val handler = Handler(Looper.getMainLooper())
-    private fun getVideoPath() : String {
-        val format = SimpleDateFormat("'/video'_yyyyMMdd_HHmmss'.mp4'", Locale.getDefault())
-        val fileName = format.format(Date())
-        val filePath = FilePathUtils.getRootPath() + "/video"
-        FilePathUtils.checkFolder(filePath)
 
+    private var videoPath : String = ""
+    private var startPicTime : Long = 0
+    private var isMirror = false
 
-        return filePath + fileName
-    }
     @SuppressLint("ClickableViewAccessibility")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -89,11 +79,9 @@ class CameraActivity : AppCompatActivity() , CaptureStateListener,
 
         preview = findViewById(R.id.preview)
         glPreview = findViewById(R.id.gl_preview)
-        surfaceView1 = findViewById(R.id.surface_view1)
         picTextView = findViewById(R.id.tv_pic_text)
         cameraInfo = findViewById(R.id.camera_info)
         preYuvView = findViewById(R.id.pre_view)
-        preYuvView2 = findViewById(R.id.pre_view2)
         previewTextView = findViewById(R.id.tv_pre_view_text)
         picView = findViewById(R.id.pic_view)
         picTextView = findViewById(R.id.tv_pic_text)
@@ -157,6 +145,17 @@ class CameraActivity : AppCompatActivity() , CaptureStateListener,
             }
         }
 
+        findViewById<Button>(R.id.btn_hide_or_show).setOnClickListener {
+            val btnLayout = findViewById<Group>(R.id.btn_id_group)
+            if (btnLayout.visibility == View.VISIBLE) {
+                btnLayout.visibility = View.INVISIBLE
+                (it as Button).text = "显示操作栏"
+            } else {
+                btnLayout.visibility = View.VISIBLE
+                (it as Button).text = "隐藏操作栏"
+            }
+        }
+
 
         findViewById<Button>(R.id.btn_open_page).setOnClickListener {
             val intent = Intent(this, CameraActivity::class.java)
@@ -178,63 +177,46 @@ class CameraActivity : AppCompatActivity() , CaptureStateListener,
         }
 
         findViewById<Button>(R.id.btn_back_camera).setOnClickListener {
-            if (cameraEnable && !capturing) {
-                cameraEnable = false
+            if (cameraEnable) {
                 glPreview.onPause()
-                glPreview.onResume()
-                glPreview.setAspectRatio(cameraRequest.getBackSize().width, cameraRequest.getBackSize().height)
-                kCamera.openCamera(cameraRequest.getBackRequest(glPreviewProvider,this).builder(), cameraListener)
+//                cameraEnable = false
+//                glPreview.setAspectRatio(cameraRequest.getBackSize().width, cameraRequest.getBackSize().height)
+//                kCamera.openCamera(cameraRequest.getBackRequest(glPreviewProvider,this).builder(), cameraListener)
             } else {
                 Toast.makeText(this, "设备没有 Ready ", Toast.LENGTH_SHORT).show()
             }
         }
 
         findViewById<Button>(R.id.btn_font_camera).setOnClickListener {
-            if (cameraEnable && !capturing) {
-                cameraEnable = false
-                glPreview.setAspectRatio(cameraRequest.getFontSize().width, cameraRequest.getFontSize().height)
-                kCamera.openCamera(cameraRequest.getFontRequest(glPreviewProvider,this).builder(), cameraListener)
+            if (cameraEnable) {
+                glPreview.onResume()
+//                cameraEnable = false
+//                glPreview.setAspectRatio(cameraRequest.getFontSize().width, cameraRequest.getFontSize().height)
+//                kCamera.openCamera(cameraRequest.getFontRequest(glPreviewProvider,this).builder(), cameraListener)
             } else {
                 Toast.makeText(this, "设备没有 Ready ", Toast.LENGTH_SHORT).show()
             }
         }
 
         findViewById<Button>(R.id.btn_capture_pic).setOnClickListener {
-            if (cameraEnable && !capturing) {
-                capturing = true
-                startTime = System.currentTimeMillis()
+            if (cameraEnable) {
+                startPicTime = System.currentTimeMillis()
                 kCamera.takePic(this)
             } else {
                 Toast.makeText(this, "设备没有 Ready ", Toast.LENGTH_SHORT).show()
-            }
-        }
-
-        findViewById<Button>(R.id.btn_capture_start_pic).setOnClickListener {
-            if (cameraEnable && !capturing) {
-                capturing = true
-                isReCapturing = true
-                kCamera.takePic(this)
-            } else {
-                Toast.makeText(this, "设备没有 Ready ", Toast.LENGTH_SHORT).show()
-            }
-        }
-
-        findViewById<Button>(R.id.btn_capture_stop_pic).setOnClickListener {
-            if (isReCapturing) {
-                capturing = false
-                isReCapturing = false
             }
         }
 
         findViewById<Button>(R.id.btn_start_video).setOnClickListener {
-            if (cameraEnable && !capturing) {
+            if (cameraEnable) {
                 kCamera.cameraId?.let { id->
                     if (id == "0") {
                         glPreview.setVideoSize(cameraRequest.getBackSize().width, cameraRequest.getBackSize().height)
                     } else {
                         glPreview.setVideoSize(cameraRequest.getFontSize().width, cameraRequest.getFontSize().height)
                     }
-                    videoRecordManager.startRecording(getVideoPath())
+                    videoPath = FilePathUtils.getVideoPath()
+                    videoRecordManager.startRecording(videoPath)
                 }
             } else {
                 Toast.makeText(this, "设备没有 Ready ", Toast.LENGTH_SHORT).show()
@@ -242,16 +224,31 @@ class CameraActivity : AppCompatActivity() , CaptureStateListener,
         }
 
         findViewById<Button>(R.id.btn_stop_video).setOnClickListener {
-            if (cameraEnable && !capturing) {
+            if (cameraEnable) {
                 videoRecordManager.stopRecording()
-                Toast.makeText(this, "vdeo path: ${getVideoPath()} ", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "video path: $videoPath ", Toast.LENGTH_SHORT).show()
+            } else {
+                Toast.makeText(this, "设备没有 Ready ", Toast.LENGTH_SHORT).show()
+            }
+        }
+
+        findViewById<Button>(R.id.btn_change_size).setOnClickListener {
+            if (cameraEnable) {
+                showDialog(kCamera.cameraId)
+            } else {
+                Toast.makeText(this, "设备没有 Ready ", Toast.LENGTH_SHORT).show()
+            }
+        }
+
+        findViewById<Button>(R.id.btn_mirror).setOnClickListener {
+            if (cameraEnable) {
+                isMirror = !isMirror
+                glPreview.setMirrorView(isMirror)
             } else {
                 Toast.makeText(this, "设备没有 Ready ", Toast.LENGTH_SHORT).show()
             }
         }
     }
-
-    var startTime : Long = 0;
 
     override fun onResume() {
         super.onResume()
@@ -274,26 +271,24 @@ class CameraActivity : AppCompatActivity() , CaptureStateListener,
             picView.visibility = View.GONE
         }
 
-        handler.postDelayed(frameCountRunner, 1000)
-        orientationFilter.onResume()
-        if (AppApplication.sCameraId == "0") {
-            glPreview.setAspectRatio(cameraRequest.getBackSize().width, cameraRequest.getBackSize().height)
-            kCamera.openCamera(cameraRequest.getBackRequest(glPreviewProvider,this).builder(), cameraListener)
-        } else {
-            glPreview.setAspectRatio(cameraRequest.getFontSize().width, cameraRequest.getFontSize().height)
-            kCamera.openCamera(cameraRequest.getFontRequest(glPreviewProvider,this).builder(), cameraListener)
-
-        }
-
         if (ConfigKey.getBoolean(ConfigKey.TAKE_JPEG_PIC, false) ||
             ConfigKey.getBoolean(ConfigKey.TAKE_YUV_TO_JPEG_PIC, false) ||
             ConfigKey.getBoolean(ConfigKey.TAKE_PNG_PIC, false)) {
             findViewById<Button>(R.id.btn_capture_pic).visibility = View.VISIBLE
         } else {
             findViewById<Button>(R.id.btn_capture_pic).visibility = View.GONE
-
         }
 
+        handler.postDelayed(frameCountRunner, 1000)
+        orientationFilter.onResume()
+
+        if (ConfigKey.getInt(ConfigKey.CAMERA_ID_TYPE) == ConfigKey.FONT_CAMERA_ID) {
+            glPreview.setAspectRatio(cameraRequest.getFontSize().width, cameraRequest.getFontSize().height)
+            kCamera.openCamera(cameraRequest.getFontRequest(glPreviewProvider,this).builder(), cameraListener)
+        } else {
+            glPreview.setAspectRatio(cameraRequest.getBackSize().width, cameraRequest.getBackSize().height)
+            kCamera.openCamera(cameraRequest.getBackRequest(glPreviewProvider,this).builder(), cameraListener)
+        }
     }
 
     override fun onPause() {
@@ -312,13 +307,10 @@ class CameraActivity : AppCompatActivity() , CaptureStateListener,
 
     private val cameraListener = object: CameraStateListener {
         override fun onFirstFrameCallback() {
+            glPreview.onResume()
             cameraEnable = true
             kCamera.cameraId?.let {
-                if (it == "1") {
-                    glPreview.setMirrorView(true)
-                } else {
-                    glPreview.setMirrorView(false)
-                }
+                glPreview.setMirrorView(isMirror)
             }
         }
 
@@ -381,6 +373,9 @@ class CameraActivity : AppCompatActivity() , CaptureStateListener,
         // Create and show the dialog.
         val newFragment = SizeSelectDialog(cameraId) {
             glPreview.setAspectRatio(it.width, it.height)
+            glPreview.onPause()
+            glPreview.onResume()
+
             if (cameraId == "0") {
                 kCamera.openCamera(
                     cameraRequest.getBackRequest(it, glPreviewProvider, this).builder(),
@@ -457,71 +452,17 @@ class CameraActivity : AppCompatActivity() , CaptureStateListener,
         }
     }
 
-    override fun onPreImageByteArray2(
-        byteArrayWithLock: ImageByteArrayWithLock,
-        width: Int,
-        height: Int
-    ) {
-        if (ConfigKey.getBoolean(ConfigKey.SHOW_PRE_YUV, false)) {
-
-            val jpeg = ImageUtil.nv21ToJPEG(byteArrayWithLock.getImageByteArray(), width, height)
-            val bitmap = ImageUtil.getPicFromBytes(jpeg)
-
-            if (ConfigKey.getBoolean(ConfigKey.SAVE_PRE_TO_JPEG, false)) {
-                val format = SimpleDateFormat("'/PRE_YUV420_888'_yyyyMMdd_HHmmss'.jpeg'", Locale.getDefault())
-                val fileName = format.format(Date())
-                val filePath = FilePathUtils.getRootPath() + "/Preview2"
-                FilePathUtils.checkFolder(filePath)
-                KLog.d("createImageReader: pic file path:" + (filePath + fileName))
-                var output: FileOutputStream? = null
-                try {
-                    output = FileOutputStream(File(filePath + fileName))
-                    output.write(jpeg)
-                } catch (e: IOException) {
-                    e.printStackTrace()
-                } finally {
-                    byteArrayWithLock.unLockByteArray()
-                    if (null != output) {
-                        try {
-                            output.close()
-                        } catch (e: IOException) {
-                            e.printStackTrace()
-                        }
-                    }
-                }
-            } else {
-                byteArrayWithLock.unLockByteArray()
-            }
-
-            preYuvView2.post {
-                preYuvView2.setImageBitmap(bitmap)
-            }
-        } else {
-            byteArrayWithLock.unLockByteArray()
-        }
-    }
-
     override fun onCaptureBitmap(picType : Int, picBitmap: Bitmap ?, savePath: String, captureTime: Long) {
-        KLog.d("take pic startTime : $startTime   cap : $captureTime  use : ${captureTime - startTime}")
-
-        val use = captureTime - startTime
-
-        if (isReCapturing) {
-            kCamera.takePic(this)
-        } else {
-            capturing = false
-        }
+        val useTime = captureTime - startPicTime
+        KLog.d("take pic startTime : $startPicTime   back time : $captureTime  use Time: $useTime")
         picBitmap?.let {
             if (ConfigKey.getInt(ConfigKey.SHOW_PIC_TYPE, ConfigKey.SHOW_NONE_VALUE) == picType) {
                 picView.post {
-                    Toast.makeText(this, "take pic startTime : $startTime   cap : $captureTime  use : $use", Toast.LENGTH_SHORT).show()
                     Toast.makeText(this, "save path: $savePath", Toast.LENGTH_SHORT).show()
                         picView.setImageBitmap(picBitmap)
                     }
             } else {
                 handler.post {
-                    Toast.makeText(this, "take pic startTime : $startTime   cap : $captureTime  use : $use", Toast.LENGTH_SHORT).show()
-
                     Toast.makeText(this, "save path: $savePath", Toast.LENGTH_SHORT).show()
                 }
             }
