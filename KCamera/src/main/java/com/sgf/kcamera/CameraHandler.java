@@ -56,14 +56,14 @@ public class CameraHandler {
         mSurfaceManager.release();
         mCameraStateListener = listener;
         mCameraId = request.getCameraId();
+        requestStrategy = request.getCustomerRequestStrategy();
         final KParams openParams = new KParams();
         mSurfaceManager.setPreviewSurfaceProviderList(request.getPreviewSurfaceProviders());
         openParams.put(KParams.Key.SURFACE_MANAGER, mSurfaceManager);
         openParams.put(KParams.Key.CAMERA_ID, mCameraId.ID);
         openParams.put(KParams.Key.FLASH_STATE, request.getFlashState());
         openParams.put(KParams.Key.IMAGE_READER_PROVIDERS, request.getSurfaceProviders());
-        openParams.put(KParams.Key.CUSTOMER_REQUEST_STRATEGY, request.getCustomerRequestStrategy());
-        requestStrategy = request.getCustomerRequestStrategy();
+        openParams.put(KParams.Key.CUSTOMER_REQUEST_STRATEGY, requestStrategy);
 
         // 切换Camera 信息管理中的 Camera 信息， 如前置camera  或 后置Camera
         mCameraInfoManager.initCameraInfo(request.getCameraId());

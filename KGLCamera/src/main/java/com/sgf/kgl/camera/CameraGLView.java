@@ -56,7 +56,7 @@ public class CameraGLView extends GLView {
 
     public void onResume() {
         super.onResume();
-        stopDrawFrame();
+        startDrawFrame();
     }
 
     public void onPause() {

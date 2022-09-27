@@ -64,8 +64,16 @@ public class GLView extends GLSurfaceView {
 		}
 	}
 
+	public int getDisplayRotation() {
+		return mDisplayRotation;
+	}
+
 	public void setMirrorView(boolean isMirror) {
 		mRenderer.setMirror(isMirror);
+	}
+
+	public void startDrawFrame() {
+		mRenderer.startDrawFrame();
 	}
 
 	public void stopDrawFrame() {
@@ -135,7 +143,7 @@ public class GLView extends GLSurfaceView {
 		private GLSurfaceTextureListener mTextureListener;
 
 		private volatile boolean isMirror = false;
-		private int mRotation;
+		private final int mRotation;
 
 		private final AtomicBoolean isRunning = new AtomicBoolean(true);
 
@@ -151,6 +159,10 @@ public class GLView extends GLSurfaceView {
 			if (mDrawer != null ) {
 				mDrawer.setMirror(isMirror);
 			}
+			startDrawFrame();
+		}
+
+		public void startDrawFrame() {
 			isRunning.set(true);
 			requestRender();
 		}
@@ -160,9 +172,8 @@ public class GLView extends GLSurfaceView {
 		}
 
 		public void setSurfaceTextureListener(GLSurfaceTextureListener textureListener) {
-			if (mSTexture == null) {
-				this.mTextureListener = textureListener;
-			} else {
+			this.mTextureListener = textureListener;
+			if (mSTexture != null) {
 				final GLView parent = mWeakParent.get();
 				if (parent != null) {
 					final int view_width = parent.getWidth();
@@ -207,6 +218,7 @@ public class GLView extends GLSurfaceView {
 		@Override
 		public void onSurfaceChanged(final GL10 unused, final int width, final int height) {
 			KLog.i("onSurfaceChanged:width" + width + "  height:" + height);
+			GLES20.glViewport(0, 0, width , height);
 			if (mTextureListener != null) {
 				mTextureListener.onSurfaceChanged(mSTexture, width, height);
 			}
