@@ -178,10 +178,9 @@ class CameraActivity : AppCompatActivity() , CaptureStateListener,
 
         findViewById<Button>(R.id.btn_back_camera).setOnClickListener {
             if (cameraEnable) {
-                glPreview.onPause()
-//                cameraEnable = false
-//                glPreview.setAspectRatio(cameraRequest.getBackSize().width, cameraRequest.getBackSize().height)
-//                kCamera.openCamera(cameraRequest.getBackRequest(glPreviewProvider,this).builder(), cameraListener)
+                cameraEnable = false
+                glPreview.setAspectRatio(cameraRequest.getBackPreviewSize().width, cameraRequest.getBackPreviewSize().height)
+                kCamera.openCamera(cameraRequest.getBackRequest(glPreviewProvider,this).builder(), cameraListener)
             } else {
                 Toast.makeText(this, "设备没有 Ready ", Toast.LENGTH_SHORT).show()
             }
@@ -189,10 +188,9 @@ class CameraActivity : AppCompatActivity() , CaptureStateListener,
 
         findViewById<Button>(R.id.btn_font_camera).setOnClickListener {
             if (cameraEnable) {
-                glPreview.onResume()
-//                cameraEnable = false
-//                glPreview.setAspectRatio(cameraRequest.getFontSize().width, cameraRequest.getFontSize().height)
-//                kCamera.openCamera(cameraRequest.getFontRequest(glPreviewProvider,this).builder(), cameraListener)
+                cameraEnable = false
+                glPreview.setAspectRatio(cameraRequest.getFontPreviewSize().width, cameraRequest.getFontPreviewSize().height)
+                kCamera.openCamera(cameraRequest.getFontRequest(glPreviewProvider,this).builder(), cameraListener)
             } else {
                 Toast.makeText(this, "设备没有 Ready ", Toast.LENGTH_SHORT).show()
             }
@@ -211,9 +209,9 @@ class CameraActivity : AppCompatActivity() , CaptureStateListener,
             if (cameraEnable) {
                 kCamera.cameraId?.let { id->
                     if (id == "0") {
-                        glPreview.setVideoSize(cameraRequest.getBackSize().width, cameraRequest.getBackSize().height)
+                        glPreview.setVideoSize(cameraRequest.getBackPreviewSize().width, cameraRequest.getBackPreviewSize().height)
                     } else {
-                        glPreview.setVideoSize(cameraRequest.getFontSize().width, cameraRequest.getFontSize().height)
+                        glPreview.setVideoSize(cameraRequest.getFontPreviewSize().width, cameraRequest.getFontPreviewSize().height)
                     }
                     videoPath = FilePathUtils.getVideoPath()
                     videoRecordManager.startRecording(videoPath)
@@ -283,10 +281,10 @@ class CameraActivity : AppCompatActivity() , CaptureStateListener,
         orientationFilter.onResume()
 
         if (ConfigKey.getInt(ConfigKey.CAMERA_ID_TYPE) == ConfigKey.FONT_CAMERA_ID) {
-            glPreview.setAspectRatio(cameraRequest.getFontSize().width, cameraRequest.getFontSize().height)
+            glPreview.setAspectRatio(cameraRequest.getFontPreviewSize().width, cameraRequest.getFontPreviewSize().height)
             kCamera.openCamera(cameraRequest.getFontRequest(glPreviewProvider,this).builder(), cameraListener)
         } else {
-            glPreview.setAspectRatio(cameraRequest.getBackSize().width, cameraRequest.getBackSize().height)
+            glPreview.setAspectRatio(cameraRequest.getBackPreviewSize().width, cameraRequest.getBackPreviewSize().height)
             kCamera.openCamera(cameraRequest.getBackRequest(glPreviewProvider,this).builder(), cameraListener)
         }
     }
@@ -352,11 +350,15 @@ class CameraActivity : AppCompatActivity() , CaptureStateListener,
             handler.postDelayed(this, 1000)
             cameraInfo.post {
                 if (kCamera.cameraId == "0") {
-                    cameraInfo.text = "贞率:${cameraRequest.getBackFrameCount()} \n分辨率:${cameraRequest.getBackSize().width} x ${cameraRequest.getBackSize().height}"
-                } else if (kCamera.cameraId == "2") {
-                    cameraInfo.text = "贞率:${cameraRequest.getFont2FrameCount()} \n分辨率:${cameraRequest.getFont2Size().width} x ${cameraRequest.getFont2Size().height}"
-                 } else {
-                    cameraInfo.text = "贞率:${cameraRequest.getFontFrameCount()} \n分辨率:${cameraRequest.getFontSize().width} x ${cameraRequest.getFontSize().height}"
+                    cameraInfo.text = "frame:${cameraRequest.getBackFrameCount()} \n" +
+                            "preview:${cameraRequest.getBackPreviewSize().width} x ${cameraRequest.getBackPreviewSize().height} \n" +
+                            "yuv:${cameraRequest.getBackYuvSize().width} x ${cameraRequest.getBackYuvSize().height} \n" +
+                            "pic:${cameraRequest.getBackPicSize().width} x ${cameraRequest.getBackPicSize().height} \n"
+                } else if (kCamera.cameraId == "1") {
+                    cameraInfo.text = "frame:${cameraRequest.getFontFrameCount()} \n" +
+                            "preview:${cameraRequest.getFontPreviewSize().width} x ${cameraRequest.getFontPreviewSize().height} \n" +
+                            "yuv:${cameraRequest.getFontYuvSize().width} x ${cameraRequest.getFontYuvSize().height} \n" +
+                            "pic:${cameraRequest.getFontPicSize().width} x ${cameraRequest.getFontPicSize().height} \n"                 } else {
                 }
 
             }

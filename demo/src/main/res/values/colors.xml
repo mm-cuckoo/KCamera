@@ -8,6 +8,7 @@
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
     <color name="light_grey">#E0DDDD</color>
+    <color name="light_grey_1">#A59C9C</color>
 
     <color name="focus_success">#13ce67</color>
     <color name="focus_failed">#ce132c</color>

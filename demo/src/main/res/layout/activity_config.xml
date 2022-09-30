@@ -31,7 +31,7 @@
         android:layout_height="1dp"/>
 
     <TextView
-        android:text="前摄默认分辨率"
+        android:text="前摄分辨率设置"
         android:textStyle="bold"
         android:layout_marginStart="10dp"
         android:layout_marginTop="10dp"
@@ -40,11 +40,12 @@
     <FrameLayout
         android:orientation="horizontal"
         android:gravity="start"
+        android:layout_marginStart="@dimen/config_size_layout_margin_start"
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
         <TextView
-            android:id="@+id/font_preivew_size"
-            android:text="拍照，预览：1920*1080"
+            android:id="@+id/font_preview_size"
+            android:text="预览：1920*1080"
             android:layout_marginStart="10dp"
             android:layout_gravity="center_vertical"
             android:layout_width="wrap_content"
@@ -54,8 +55,65 @@
             android:text="修改"
             android:layout_gravity="end"
             android:layout_marginEnd="10dp"
+            android:padding="0dp"
+            android:layout_width="wrap_content"
+            android:layout_height="@dimen/config_btn_height"/>
+    </FrameLayout>
+    <View
+        android:layout_marginEnd="10dp"
+        android:layout_marginStart="@dimen/config_size_layout_line_margin_start"
+        android:background="@color/light_grey_1"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"/>
+    <FrameLayout
+        android:orientation="horizontal"
+        android:gravity="start"
+        android:layout_marginStart="@dimen/config_size_layout_margin_start"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+        <TextView
+            android:id="@+id/font_preview_yuv_size"
+            android:text="YUV：1920*1080"
+            android:layout_marginStart="10dp"
+            android:layout_gravity="center_vertical"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"/>
+        <Button
+            android:id="@+id/btn_change_font_preview_yuv_size"
+            android:text="修改"
+            android:layout_gravity="end"
+            android:layout_marginEnd="10dp"
+            android:padding="0dp"
+            android:layout_width="wrap_content"
+            android:layout_height="@dimen/config_btn_height"/>
+    </FrameLayout>
+    <View
+        android:layout_marginEnd="10dp"
+        android:layout_marginStart="@dimen/config_size_layout_line_margin_start"
+        android:background="@color/light_grey_1"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"/>
+    <FrameLayout
+        android:orientation="horizontal"
+        android:gravity="start"
+        android:layout_marginStart="@dimen/config_size_layout_margin_start"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+        <TextView
+            android:id="@+id/font_pic_size"
+            android:text="拍照：1920*1080"
+            android:layout_marginStart="10dp"
+            android:layout_gravity="center_vertical"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"/>
+        <Button
+            android:id="@+id/btn_change_font_pic_size"
+            android:text="修改"
+            android:layout_gravity="end"
+            android:layout_marginEnd="10dp"
+            android:padding="0dp"
+            android:layout_width="wrap_content"
+            android:layout_height="@dimen/config_btn_height"/>
     </FrameLayout>
     <View
         android:layout_marginEnd="10dp"
@@ -63,9 +121,8 @@
         android:background="@color/light_grey"
         android:layout_width="match_parent"
         android:layout_height="1dp"/>
-
     <TextView
-        android:text="后摄默认分辨率"
+        android:text="后摄分辨率"
         android:textStyle="bold"
         android:layout_marginStart="10dp"
         android:layout_marginTop="10dp"
@@ -75,11 +132,12 @@
     <FrameLayout
         android:orientation="horizontal"
         android:gravity="start"
+        android:layout_marginStart="@dimen/config_size_layout_margin_start"
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
         <TextView
-            android:id="@+id/back_preivew_size"
-            android:text="拍照，预览：1920*1080"
+            android:id="@+id/back_preview_size"
+            android:text="预览：1920*1080"
             android:layout_marginStart="10dp"
             android:layout_gravity="center_vertical"
             android:layout_width="wrap_content"
@@ -89,8 +147,65 @@
             android:text="修改"
             android:layout_gravity="end"
             android:layout_marginEnd="10dp"
+            android:padding="0dp"
+            android:layout_width="wrap_content"
+            android:layout_height="@dimen/config_btn_height"/>
+    </FrameLayout>
+    <View
+        android:layout_marginEnd="10dp"
+        android:layout_marginStart="@dimen/config_size_layout_line_margin_start"
+        android:background="@color/light_grey_1"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"/>
+    <FrameLayout
+        android:orientation="horizontal"
+        android:gravity="start"
+        android:layout_marginStart="@dimen/config_size_layout_margin_start"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+        <TextView
+            android:id="@+id/back_preview_yuv_size"
+            android:text="YUV：1920*1080"
+            android:layout_marginStart="10dp"
+            android:layout_gravity="center_vertical"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"/>
+        <Button
+            android:id="@+id/btn_change_back_preview_yuv_size"
+            android:text="修改"
+            android:layout_gravity="end"
+            android:layout_marginEnd="10dp"
+            android:padding="0dp"
+            android:layout_width="wrap_content"
+            android:layout_height="@dimen/config_btn_height"/>
+    </FrameLayout>
+    <View
+        android:layout_marginEnd="10dp"
+        android:layout_marginStart="@dimen/config_size_layout_line_margin_start"
+        android:background="@color/light_grey_1"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"/>
+    <FrameLayout
+        android:orientation="horizontal"
+        android:gravity="start"
+        android:layout_marginStart="@dimen/config_size_layout_margin_start"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+        <TextView
+            android:id="@+id/back_pic_size"
+            android:text="拍照：1920*1080"
+            android:layout_marginStart="10dp"
+            android:layout_gravity="center_vertical"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"/>
+        <Button
+            android:id="@+id/btn_change_back_pic_size"
+            android:text="修改"
+            android:layout_gravity="end"
+            android:layout_marginEnd="10dp"
+            android:padding="0dp"
+            android:layout_width="wrap_content"
+            android:layout_height="@dimen/config_btn_height"/>
     </FrameLayout>
     <View
         android:layout_marginEnd="10dp"

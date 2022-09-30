@@ -7,5 +7,7 @@
     <dimen name="radius_outer">50dp</dimen>
     <dimen name="radius_inner">30dp</dimen>
     <dimen name="stroke_width">2dp</dimen>
-    <integer name="sfaf">12323</integer>
+    <dimen name="config_btn_height">35dp</dimen>
+    <dimen name="config_size_layout_margin_start">10dp</dimen>
+    <dimen name="config_size_layout_line_margin_start">20dp</dimen>
 </resources>

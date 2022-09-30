@@ -14,10 +14,19 @@ object ConfigKey {
     private const val SP_NAME = "kcamera_config"
 
     val DEF_FONT_PREVIEW_SIZE = Size(1280,960)
+    val DEF_FONT_YUV_SIZE = DEF_FONT_PREVIEW_SIZE
+    val DEF_FONT_PIC_SIZE = DEF_FONT_PREVIEW_SIZE
     val DEF_BACK_PREVIEW_SIZE = Size(1280,960)
+    val DEF_BACK_YUV_SIZE = DEF_BACK_PREVIEW_SIZE
+    val DEF_BACK_PIC_SIZE = DEF_BACK_PREVIEW_SIZE
 
     const val FONT_PREVIEW_SIZE = "font_preview_size"
+    const val FONT_YUV_SIZE = "font_yuv_size"
+    const val FONT_PIC_SIZE = "font_pic_size"
+
     const val BACK_PREVIEW_SIZE = "back_preview_size"
+    const val BACK_YUV_SIZE = "back_yuv_size"
+    const val BACK_PIC_SIZE = "back_pic_size"
 
     const val OPEN_SENSOR = "open_sensor"
 

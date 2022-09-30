@@ -10,7 +10,7 @@ import com.sgf.kcamera.CameraID
 import com.sgf.kcamera.utils.WorkerHandlerManager
 import java.lang.Exception
 
-class PreviewImageReader(private var listener: ImageDataListener? = null) : ImageReaderProvider(TYPE.PREVIEW) {
+class PreviewImageReader(private var yuvSize: Size, private var listener: ImageDataListener? = null) : ImageReaderProvider(TYPE.PREVIEW) {
     var cameraId : CameraID = CameraID.BACK
 
     private var frameCount = 0
@@ -25,10 +25,10 @@ class PreviewImageReader(private var listener: ImageDataListener? = null) : Imag
     private var imageByteArrayWithLock : ImageByteArrayWithLock? = null
 
     override fun createImageReader(previewSize: Size, captureSize: Size): ImageReader {
-        imageByteArrayWithLock = ImageByteArrayWithLock(previewSize.width * previewSize.height * 3 / 2)
+        imageByteArrayWithLock = ImageByteArrayWithLock(yuvSize.width * yuvSize.height * 3 / 2)
         return ImageReader.newInstance(
-            previewSize.width,
-            previewSize.height,
+            yuvSize.width,
+            yuvSize.height,
             ImageFormat.YUV_420_888,
             3
         )

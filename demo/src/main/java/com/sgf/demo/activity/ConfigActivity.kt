@@ -14,19 +14,39 @@ import com.sgf.demo.config.SizeSelectDialog
 class ConfigActivity : AppCompatActivity() {
 
     private lateinit var fontPreviewSize : TextView
+    private lateinit var fontYuvSize : TextView
+    private lateinit var fontPicSize : TextView
     private lateinit var backPreviewSize : TextView
+    private lateinit var backYuvSize : TextView
+    private lateinit var backPicSize : TextView
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_config)
 
-        fontPreviewSize = findViewById(R.id.font_preivew_size)
-        backPreviewSize = findViewById(R.id.back_preivew_size)
+        fontPreviewSize = findViewById(R.id.font_preview_size)
+        fontYuvSize = findViewById(R.id.font_preview_yuv_size)
+        fontPicSize = findViewById(R.id.font_pic_size)
+        backPreviewSize = findViewById(R.id.back_preview_size)
+        backYuvSize = findViewById(R.id.back_preview_yuv_size)
+        backPicSize = findViewById(R.id.back_pic_size)
 
-        val defFontSize = ConfigKey.getSize(ConfigKey.FONT_PREVIEW_SIZE, ConfigKey.DEF_FONT_PREVIEW_SIZE)
-        fontPreviewSize.text = "预览,YUV,拍照 : ${defFontSize.width} * ${defFontSize.height}"
+        val defFontPreviewSize = ConfigKey.getSize(ConfigKey.FONT_PREVIEW_SIZE, ConfigKey.DEF_FONT_PREVIEW_SIZE)
+        fontPreviewSize.text = "预览 : ${defFontPreviewSize.width} * ${defFontPreviewSize.height}"
 
-        val defBackSize = ConfigKey.getSize(ConfigKey.BACK_PREVIEW_SIZE, ConfigKey.DEF_BACK_PREVIEW_SIZE)
-        backPreviewSize.text = "预览,YUV,拍照 : ${defBackSize.width} * ${defBackSize.height}"
+        val defFontYuvSize = ConfigKey.getSize(ConfigKey.FONT_YUV_SIZE, ConfigKey.DEF_FONT_YUV_SIZE)
+        fontYuvSize.text = "YUV : ${defFontYuvSize.width} * ${defFontYuvSize.height}"
+
+        val defPicYuvSize = ConfigKey.getSize(ConfigKey.FONT_PIC_SIZE, ConfigKey.DEF_FONT_PIC_SIZE)
+        fontPicSize.text = "拍照 : ${defPicYuvSize.width} * ${defPicYuvSize.height}"
+
+        val defBackPreviewSize = ConfigKey.getSize(ConfigKey.BACK_PREVIEW_SIZE, ConfigKey.DEF_BACK_PREVIEW_SIZE)
+        backPreviewSize.text = "预览 : ${defBackPreviewSize.width} * ${defBackPreviewSize.height}"
+
+        val defBackYuvSize = ConfigKey.getSize(ConfigKey.BACK_PREVIEW_SIZE, ConfigKey.DEF_BACK_PREVIEW_SIZE)
+        backYuvSize.text = "YUV: ${defBackYuvSize.width} * ${defBackYuvSize.height}"
+
+        val defBackPicSize = ConfigKey.getSize(ConfigKey.BACK_PREVIEW_SIZE, ConfigKey.DEF_BACK_PREVIEW_SIZE)
+        backPicSize.text = "拍照 : ${defBackPicSize.width} * ${defBackPicSize.height}"
 
 
         findViewById<Button>(R.id.btn_ok).setOnClickListener {
@@ -34,11 +54,45 @@ class ConfigActivity : AppCompatActivity() {
         }
 
         findViewById<Button>(R.id.btn_change_font_preview_size).setOnClickListener {
-            showDialog("1")
+            showDialog("1") {
+                fontPreviewSize.text = "预览 : ${it.width} * ${it.height}"
+                ConfigKey.putSize(ConfigKey.FONT_PREVIEW_SIZE, it)
+            }
+        }
+
+        findViewById<Button>(R.id.btn_change_font_preview_yuv_size).setOnClickListener {
+            showDialog("1") {
+                fontYuvSize.text = "YUV : ${it.width} * ${it.height}"
+                ConfigKey.putSize(ConfigKey.FONT_YUV_SIZE, it)
+            }
+        }
+
+        findViewById<Button>(R.id.btn_change_font_pic_size).setOnClickListener {
+            showDialog("1") {
+                fontPicSize.text = "拍照 : ${it.width} * ${it.height}"
+                ConfigKey.putSize(ConfigKey.FONT_PIC_SIZE, it)
+            }
         }
 
         findViewById<Button>(R.id.btn_change_back_preview_size).setOnClickListener {
-            showDialog("0")
+            showDialog("0") {
+                backPreviewSize.text = "预览 : ${it.width} * ${it.height}"
+                ConfigKey.putSize(ConfigKey.BACK_PREVIEW_SIZE, it)
+            }
+        }
+
+        findViewById<Button>(R.id.btn_change_back_preview_yuv_size).setOnClickListener {
+            showDialog("0") {
+                backYuvSize.text = "YUV : ${it.width} * ${it.height}"
+                ConfigKey.putSize(ConfigKey.BACK_YUV_SIZE, it)
+            }
+        }
+
+        findViewById<Button>(R.id.btn_change_back_pic_size).setOnClickListener {
+            showDialog("0") {
+                backPreviewSize.text = "拍照 : ${it.width} * ${it.height}"
+                ConfigKey.putSize(ConfigKey.BACK_PIC_SIZE, it)
+            }
         }
 
         val preYuv = findViewById<CheckBox>(R.id.cb_show_pre_yuv)
@@ -140,25 +194,25 @@ class ConfigActivity : AppCompatActivity() {
         }
     }
 
-    private fun showDialog(cameraId: String) {
+    private fun showDialog(cameraId: String, selectCall : (Size) -> Unit) {
         val ft = supportFragmentManager.beginTransaction()
         val prev = supportFragmentManager.findFragmentByTag("dialog")
         if (prev != null) {
             ft.remove(prev)
         }
         ft.addToBackStack(null)
-
+        val newFragment = SizeSelectDialog(cameraId, selectCall)
         // Create and show the dialog.
-        val newFragment = SizeSelectDialog(cameraId) {
-            if (cameraId == "0") {
-                backPreviewSize.text = "预览,YUV,拍照 : ${it.width} * ${it.height}"
-                ConfigKey.putSize(ConfigKey.BACK_PREVIEW_SIZE, it)
-            } else if (cameraId == "1") {
-                fontPreviewSize.text = "预览,YUV,拍照 : ${it.width} * ${it.height}"
-                ConfigKey.putSize(ConfigKey.FONT_PREVIEW_SIZE, it)
-            }
-
-        }
+//        val newFragment = SizeSelectDialog(cameraId) {
+//            if (cameraId == "0") {
+//                backPreviewSize.text = "预览,YUV,拍照 : ${it.width} * ${it.height}"
+//                ConfigKey.putSize(ConfigKey.BACK_PREVIEW_SIZE, it)
+//            } else if (cameraId == "1") {
+//                fontPreviewSize.text = "预览,YUV,拍照 : ${it.width} * ${it.height}"
+//                ConfigKey.putSize(ConfigKey.FONT_PREVIEW_SIZE, it)
+//            }
+//
+//        }
         newFragment.show(ft, "dialog")
     }
 
