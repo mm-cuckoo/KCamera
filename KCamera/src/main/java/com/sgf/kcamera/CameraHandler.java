@@ -99,6 +99,8 @@ public class CameraHandler {
         }).subscribe(new CameraObserver<KParams>(){
             @Override
             public void onNext(@NonNull KParams resultParams) {
+                KLog.d("open camera result params:\n" + resultParams);
+
                 Integer afState = resultParams.get(KParams.Key.AF_STATE);
                 synchronized (OBJ) {
                     if (afState != null && mCameraStateListener != null) {
@@ -117,8 +119,10 @@ public class CameraHandler {
             @Override
             public void onError(@androidx.annotation.NonNull Throwable e) {
                 super.onError(e);
-                if (e instanceof KException) {
-                    KLog.e(e.getMessage());
+                synchronized (OBJ) {
+                    if (mCameraStateListener != null) {
+                        mCameraStateListener.onCameraError(e);
+                    }
                 }
             }
         });

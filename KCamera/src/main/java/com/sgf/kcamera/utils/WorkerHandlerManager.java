@@ -19,8 +19,9 @@ public class WorkerHandlerManager {
         T_TYPE_DATA("data-thread"),
         T_TYPE_BUSINESS("business-thread"),
         T_TYPE_IMAGE_SURFACE("image-surface-thread"),
-        T_TYPE_CAMERA("camera-thread");
-        protected final String tag;
+        T_TYPE_CAMERA("camera-thread"),
+        T_TYPE_CLOSE_CAMERA("camera-close-thread");
+        private final String tag;
         Tag(String tag) {
             this.tag = tag;
         }

@@ -24,4 +24,10 @@ public interface CameraStateListener {
      * @param state
      */
     void onFocusStateChange(int state);
+
+    /**
+     * 当调用camera发生异常时回调
+     * @param throwable
+     */
+    void onCameraError(Throwable throwable);
 }

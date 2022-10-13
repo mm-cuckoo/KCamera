@@ -7,16 +7,13 @@ import android.hardware.camera2.CaptureRequest;
 
 import androidx.annotation.NonNull;
 
-import com.sgf.kcamera.KException;
 import com.sgf.kcamera.KParams;
 import com.sgf.kcamera.camera.device.KCameraDevice;
 import com.sgf.kcamera.log.KLog;
 import com.sgf.kcamera.surface.SurfaceManager;
-import com.sgf.kcamera.utils.KCode;
 import com.sgf.kcamera.utils.RetryWithDelay;
 import com.sgf.kcamera.utils.WorkerHandlerManager;
 
-import io.reactivex.Emitter;
 import io.reactivex.Observable;
 import io.reactivex.ObservableOnSubscribe;
 
@@ -29,7 +26,7 @@ public class CameraSessionImpl implements CameraSession {
     private final KCameraDevice mKCameraDevice;
     private CameraCaptureSession mCameraSession;
     private CameraDevice mCameraDevice;
-    private String mCameraId;
+    private volatile String mCameraId;
     private volatile Long mOpenCameraSign = 0L;
 
     CameraSessionImpl(KCameraDevice cameraDevice) {
@@ -47,7 +44,8 @@ public class CameraSessionImpl implements CameraSession {
             mOpenCameraSign = openResult.get(KParams.Key.OPEN_CAMERA_SIGN, 0L);
             return openResult;
             // 如果打开失败会在此处进出3次重试，每次间隔300毫秒
-        }).subscribeOn(mKCameraDevice.getCameraScheduler()).retryWhen(new RetryWithDelay(3, 300));
+        }).subscribeOn(mKCameraDevice.getCameraScheduler(KCameraDevice.SCHEDULER_TYPE_CAMERA))
+                .retryWhen(new RetryWithDelay(3, 300));
     }
 
     @Override
@@ -78,7 +76,8 @@ public class CameraSessionImpl implements CameraSession {
                 KLog.e("onCreateCaptureSession :  Exception :" + e );
                 e.printStackTrace();
             }
-        }).subscribeOn(mKCameraDevice.getCameraScheduler()).retryWhen(new RetryWithDelay(3, 5000));
+        }).subscribeOn(mKCameraDevice.getCameraScheduler(KCameraDevice.SCHEDULER_TYPE_CAMERA))
+                .retryWhen(new RetryWithDelay(3, 5000));
     }
 
     @Override
@@ -96,8 +95,10 @@ public class CameraSessionImpl implements CameraSession {
             /*
              * 获取一下执行锁，保证执行时camera open 完成执行
              */
-            mKCameraDevice.lock();
-            mKCameraDevice.unlock();
+            boolean isGetLock = mKCameraDevice.requestLock();
+            if (isGetLock) {
+                mKCameraDevice.releaseLock();
+            }
             closeParams.put(KParams.Key.OPEN_CAMERA_SIGN, mOpenCameraSign);
             closeParams.put(KParams.Key.CAMERA_ID, mCameraId);
             int closeResult = mKCameraDevice.closeCameraDevice(closeParams);
@@ -106,12 +107,16 @@ public class CameraSessionImpl implements CameraSession {
                     "  this openCameraSign :" + mOpenCameraSign +
                     "  closeResult:" + closeResult);
 
+            if (closeResult != KParams.Value.CLOSE_STATE.DEVICE_CLOSED_CHECK_SIGN_FAIL) {
+                mOpenCameraSign = 0L;
+            }
+
             if (mCameraSession != null) {
                 mCameraSession.close();
                 mCameraSession = null;
             }
             emitter.onNext(closeParams);
-        }).subscribeOn(mKCameraDevice.getCameraScheduler());
+        }).subscribeOn(mKCameraDevice.getCameraScheduler(KCameraDevice.SCHEDULER_TYPE_CLOSE_CAMERA));
     }
 
     @Override

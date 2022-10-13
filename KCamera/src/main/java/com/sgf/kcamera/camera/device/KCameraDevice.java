@@ -1,6 +1,8 @@
 package com.sgf.kcamera.camera.device;
 
 
+import androidx.annotation.IntRange;
+
 import com.sgf.kcamera.KParams;
 
 import io.reactivex.Observable;
@@ -10,6 +12,15 @@ import io.reactivex.Scheduler;
  * Camera Device 控制
  */
 public interface KCameraDevice {
+
+    /**
+     * 打开camera, 操作camera 使用的 Scheduler
+     */
+    int SCHEDULER_TYPE_CAMERA = 0;
+    /**
+     * 关闭camera 时使用的 Scheduler
+     */
+    int SCHEDULER_TYPE_CLOSE_CAMERA = 1;
 
     /**
      * 打开 camera device
@@ -22,20 +33,21 @@ public interface KCameraDevice {
      * Camera 线程调度器，该调度器负责Camera  device ,session 的执行
      * @return
      */
-    Scheduler getCameraScheduler();
+    Scheduler getCameraScheduler(@IntRange(from = SCHEDULER_TYPE_CAMERA, to = SCHEDULER_TYPE_CLOSE_CAMERA) int schedulerType);
 
     /**
      * 获取一个锁
      *
      * 如果 6s 没有获取成功， 会抛出一个异常：Time out waiting to lock camera opening.
+     * @return true : 请求到lock , false : 没有请求到锁
      * @throws InterruptedException
      */
-    void lock() throws InterruptedException;
+    boolean requestLock() throws InterruptedException;
 
     /**
      * 释放获取的锁
      */
-    void unlock();
+    void releaseLock();
 
     /**
      * 关闭Camera device

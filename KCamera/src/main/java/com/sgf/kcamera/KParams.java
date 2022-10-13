@@ -97,6 +97,8 @@ public class KParams {
         interface CLOSE_STATE {
             int DEVICE_NULL = 0;
             int DEVICE_CLOSED = 1;
+            int DEVICE_CLOSED_CHECK_SIGN_FAIL = 2;
+            int DEVICE_CLOSED_REQ_LOCK_FAIL = 3;
         }
     }
 
