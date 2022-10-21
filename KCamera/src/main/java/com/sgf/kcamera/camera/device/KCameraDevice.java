@@ -1,8 +1,6 @@
 package com.sgf.kcamera.camera.device;
 
 
-import androidx.annotation.IntRange;
-
 import com.sgf.kcamera.KParams;
 
 import io.reactivex.Observable;
@@ -14,49 +12,30 @@ import io.reactivex.Scheduler;
 public interface KCameraDevice {
 
     /**
-     * 打开camera, 操作camera 使用的 Scheduler
-     */
-    int SCHEDULER_TYPE_CAMERA = 0;
-    /**
-     * 关闭camera 时使用的 Scheduler
-     */
-    int SCHEDULER_TYPE_CLOSE_CAMERA = 1;
-
-    /**
      * 打开 camera device
      * @param openParam : 打开 camera device 参数
-     * @return
      */
     Observable<KParams> openCameraDevice(KParams openParam);
 
     /**
      * Camera 线程调度器，该调度器负责Camera  device ,session 的执行
-     * @return
      */
-    Scheduler getCameraScheduler(@IntRange(from = SCHEDULER_TYPE_CAMERA, to = SCHEDULER_TYPE_CLOSE_CAMERA) int schedulerType);
+    Scheduler getCameraScheduler();
 
-    /**
-     * 获取一个锁
-     *
-     * 如果 6s 没有获取成功， 会抛出一个异常：Time out waiting to lock camera opening.
-     * @return true : 请求到lock , false : 没有请求到锁
-     * @throws InterruptedException
-     */
-    boolean requestLock() throws InterruptedException;
-
-    /**
-     * 释放获取的锁
-     */
-    void releaseLock();
 
     /**
      * 关闭Camera device
      * @param closeParam ： 关闭 Camera device 参数
-     * @return 关闭结果code
-     * code 说明：
-     * KParams.Value.CLOSE_STATE.DEVICE_NULL 表示device 为 null , 没有进行实际的关闭动作
-     * KParams.Value.CLOSE_STATE.DEVICE_CLOSED 表示正常关闭device
+     *                   在关闭camera device 时要注意一下几种情况
+     *                   1. sign = 0 和 cameraId = null时
+     *                   关闭所有已经打开的camera device
+     *                   2. sign = 0 , cameraId 不为null 时
+     *                   关闭指定cameraId 的camera device
+     *                   3. sign 不为 0 ， cameraId 不为null 时
+     *                   如果当前已经打开的camera sign 和需要关闭camera id 对应的sign 相同，
+     *                   则关闭对应的cameraId 的 device
      */
-    int closeCameraDevice(KParams closeParam);
+    Observable<KParams> closeCameraDevice(KParams closeParam);
+
 
 }

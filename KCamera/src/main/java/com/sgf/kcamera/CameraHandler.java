@@ -22,6 +22,7 @@ import com.sgf.kcamera.utils.CameraObserver;
 import io.reactivex.ObservableSource;
 import io.reactivex.annotations.NonNull;
 import io.reactivex.functions.Function;
+import io.reactivex.functions.Predicate;
 
 /**
  * Camera 操作帮助
@@ -38,6 +39,7 @@ public class CameraHandler {
     private CameraStateListener mCameraStateListener;
     private KCustomerRequestStrategy requestStrategy;
     private CameraID mCameraId;
+    private volatile Long mOpenCameraSign = 0L;
 
     public CameraHandler(Context context, ConfigWrapper configWrapper) {
         CameraSessionManager sessionManager = CameraSessionManagerImpl.getInstance(context);
@@ -53,6 +55,7 @@ public class CameraHandler {
     }
 
     public final synchronized void onOpenCamera(@NonNull PreviewRequest request, final CameraStateListener listener) {
+        mOpenCameraSign = System.currentTimeMillis();
         mSurfaceManager.release();
         mCameraStateListener = listener;
         mCameraId = request.getCameraId();
@@ -61,6 +64,7 @@ public class CameraHandler {
         mSurfaceManager.setPreviewSurfaceProviderList(request.getPreviewSurfaceProviders());
         openParams.put(KParams.Key.SURFACE_MANAGER, mSurfaceManager);
         openParams.put(KParams.Key.CAMERA_ID, mCameraId.ID);
+        openParams.put(KParams.Key.OPEN_CAMERA_SIGN, mOpenCameraSign);
         openParams.put(KParams.Key.FLASH_STATE, request.getFlashState());
         openParams.put(KParams.Key.IMAGE_READER_PROVIDERS, request.getSurfaceProviders());
         openParams.put(KParams.Key.CUSTOMER_REQUEST_STRATEGY, requestStrategy);
@@ -83,49 +87,55 @@ public class CameraHandler {
 
         openParams.put(KParams.Key.ZOOM_VALUE, request.getZoom());
 
+        KLog.i("open camera , camera id:" + mCameraId.ID + "  open sign:" + mOpenCameraSign);
         KLog.d("max zoom:" + mCameraInfoManager.getMaxZoom()  + " zoom :" + request.getZoom() + " zoom area:" + mCameraInfoManager.getActiveArraySize() );
 
         long openTime = System.currentTimeMillis();
-        mCameraBusiness.closeCamera(new KParams()).flatMap((Function<KParams, ObservableSource<KParams>>) params -> {
-            int closeResult = params.get(KParams.Key.CLOSE_CAMERA_STATUS, KParams.Value.CLOSE_STATE.DEVICE_NULL);
-            synchronized (OBJ) {
-                if (mCameraStateListener != null) {
-                    mCameraStateListener.onCameraClosed(closeResult);
-                }
-            }
-            KLog.d("open close camera use time:" + (System.currentTimeMillis() - openTime));
-
-            return mCameraBusiness.openCamera(openParams);
-        }).subscribe(new CameraObserver<KParams>(){
-            @Override
-            public void onNext(@NonNull KParams resultParams) {
-                KLog.d("open camera result params:\n" + resultParams);
-
-                Integer afState = resultParams.get(KParams.Key.AF_STATE);
-                synchronized (OBJ) {
-                    if (afState != null && mCameraStateListener != null) {
-                        // 对焦模式发生变化
-                        mCameraStateListener.onFocusStateChange(afState);
+        mCameraBusiness.closeCamera(new KParams())
+                .filter(new Predicate<KParams>() {
+                    @Override
+                    public boolean test(KParams params) {
+                        int closeResult = params.get(KParams.Key.CLOSE_CAMERA_STATUS, KParams.Value.CLOSE_STATE.DEVICE_NULL);
+                        if (BuildConfig.DEBUG) {
+                            KLog.d("open camera before close, closeResult : " + closeResult + " use time:" + (System.currentTimeMillis() - openTime));
+                        }
+                        return closeResult == KParams.Value.CLOSE_STATE.DEVICE_CLOSED_RUNNABLE_PUSH_HANDLER;
                     }
-                    if (KParams.Value.OK.equals(resultParams.get(KParams.Key.PREVIEW_FIRST_FRAME)) && mCameraStateListener != null) {
-                        // 第一帧图像数据返回
-                        KLog.d("open camera use time:" + (System.currentTimeMillis() - openTime));
-                        mCameraStateListener.onFirstFrameCallback();
-                    }
-                }
+                }).flatMap((Function<KParams, ObservableSource<KParams>>) params -> {
+                    int closeResult = params.get(KParams.Key.CLOSE_CAMERA_STATUS, KParams.Value.CLOSE_STATE.DEVICE_NULL);
 
-            }
+                    KLog.d("open camera before close, closeResult : 0000" + closeResult + " use time:" + (System.currentTimeMillis() - openTime));
 
-            @Override
-            public void onError(@androidx.annotation.NonNull Throwable e) {
-                super.onError(e);
-                synchronized (OBJ) {
-                    if (mCameraStateListener != null) {
-                        mCameraStateListener.onCameraError(e);
+                    return mCameraBusiness.openCamera(openParams);
+                }).subscribe(new CameraObserver<KParams>() {
+                    @Override
+                    public void onNext(@NonNull KParams resultParams) {
+                        KLog.i("open camera result params:\n" + resultParams);
+                        Integer afState = resultParams.get(KParams.Key.AF_STATE);
+                        synchronized (OBJ) {
+                            if (afState != null && mCameraStateListener != null) {
+                                // 对焦模式发生变化
+                                mCameraStateListener.onFocusStateChange(afState);
+                            }
+                            if (KParams.Value.OK.equals(resultParams.get(KParams.Key.PREVIEW_FIRST_FRAME)) && mCameraStateListener != null) {
+                                // 第一帧图像数据返回
+                                KLog.d("open camera use time:" + (System.currentTimeMillis() - openTime));
+                                mCameraStateListener.onFirstFrameCallback();
+                            }
+                        }
+
                     }
-                }
-            }
-        });
+
+                    @Override
+                    public void onError(@androidx.annotation.NonNull Throwable e) {
+                        super.onError(e);
+                        synchronized (OBJ) {
+                            if (mCameraStateListener != null) {
+                                mCameraStateListener.onCameraError(e);
+                            }
+                        }
+                    }
+                });
     }
 
     public final void onCameraRepeating(@NonNull RepeatRequest request) {
@@ -182,15 +192,25 @@ public class CameraHandler {
             mCameraStateListener = null;
         }
         KParams closeParams = new KParams();
-        mCameraBusiness.closeCamera(closeParams).subscribe(new CameraObserver<KParams>() {
-            @Override
-            public void onNext(KParams params) {
-                int closeResult = params.get(KParams.Key.CLOSE_CAMERA_STATUS, KParams.Value.CLOSE_STATE.DEVICE_NULL);
-                if (listener != null) {
-                    listener.onCameraClosed(closeResult);
-                }
-            }
-        });
+        closeParams.put(KParams.Key.OPEN_CAMERA_SIGN, mOpenCameraSign);
+        mCameraBusiness.closeCamera(closeParams)
+                .filter(new Predicate<KParams>() {
+                    @Override
+                    public boolean test(KParams params) {
+                        int closeResult = params.get(KParams.Key.CLOSE_CAMERA_STATUS, KParams.Value.CLOSE_STATE.DEVICE_NULL);
+                        KLog.d("close camera device closeResult : " + closeResult);
+                        return closeResult != KParams.Value.CLOSE_STATE.DEVICE_CLOSED_RUNNABLE_PUSH_HANDLER;
+                    }
+                }).subscribe(new CameraObserver<KParams>() {
+                    @Override
+                    public void onNext(KParams params) {
+                        int closeResult = params.get(KParams.Key.CLOSE_CAMERA_STATUS, KParams.Value.CLOSE_STATE.DEVICE_NULL);
+
+                        if (listener != null) {
+                            listener.onCameraClosed(closeResult);
+                        }
+                    }
+                });
         mSurfaceManager.release();
     }
 

@@ -16,6 +16,7 @@ import com.sgf.kcamera.utils.WorkerHandlerManager;
 
 import io.reactivex.Observable;
 import io.reactivex.ObservableOnSubscribe;
+import io.reactivex.functions.Function;
 
 /**
  * Camera Session 操作实例
@@ -27,7 +28,6 @@ public class CameraSessionImpl implements CameraSession {
     private CameraCaptureSession mCameraSession;
     private CameraDevice mCameraDevice;
     private volatile String mCameraId;
-    private volatile Long mOpenCameraSign = 0L;
 
     CameraSessionImpl(KCameraDevice cameraDevice) {
         mKCameraDevice = cameraDevice;
@@ -41,11 +41,11 @@ public class CameraSessionImpl implements CameraSession {
             // 打开Camera成功后获取Camera Device
             mCameraDevice = openResult.get(KParams.Key.CAMERA_DEVICE);
             // 打开时的签名信息， 该信息用于关闭camera device 时校验使用
-            mOpenCameraSign = openResult.get(KParams.Key.OPEN_CAMERA_SIGN, 0L);
+//            mOpenCameraSign = openResult.get(KParams.Key.OPEN_CAMERA_SIGN, 0L);
             return openResult;
             // 如果打开失败会在此处进出3次重试，每次间隔300毫秒
-        }).subscribeOn(mKCameraDevice.getCameraScheduler(KCameraDevice.SCHEDULER_TYPE_CAMERA))
-                .retryWhen(new RetryWithDelay(3, 300));
+        }).subscribeOn(mKCameraDevice.getCameraScheduler())
+                .retryWhen(new RetryWithDelay(3, 500));
     }
 
     @Override
@@ -76,7 +76,7 @@ public class CameraSessionImpl implements CameraSession {
                 KLog.e("onCreateCaptureSession :  Exception :" + e );
                 e.printStackTrace();
             }
-        }).subscribeOn(mKCameraDevice.getCameraScheduler(KCameraDevice.SCHEDULER_TYPE_CAMERA))
+        }).subscribeOn(mKCameraDevice.getCameraScheduler())
                 .retryWhen(new RetryWithDelay(3, 5000));
     }
 
@@ -90,33 +90,23 @@ public class CameraSessionImpl implements CameraSession {
 
     @Override
     public Observable<KParams> onClose(KParams closeParams) {
-        return Observable.create((ObservableOnSubscribe<KParams>) emitter -> {
+        closeParams.put(KParams.Key.CAMERA_ID, mCameraId);
+        return mKCameraDevice.closeCameraDevice(closeParams).map(new Function<KParams, KParams>() {
+            @Override
+            public KParams apply(KParams params) {
+                int closeResult = params.get(KParams.Key.CLOSE_CAMERA_STATUS, KParams.Value.CLOSE_STATE.DEVICE_NULL);
+                KLog.i("close camera , mCameraId:" + mCameraId  +
+                        "  closeResult:" + closeResult);
 
-            /*
-             * 获取一下执行锁，保证执行时camera open 完成执行
-             */
-            boolean isGetLock = mKCameraDevice.requestLock();
-            if (isGetLock) {
-                mKCameraDevice.releaseLock();
+                if (closeResult == KParams.Value.CLOSE_STATE.DEVICE_CLOSED) {
+                    if (mCameraSession != null) {
+                        mCameraSession.close();
+                        mCameraSession = null;
+                    }
+                }
+                return params;
             }
-            closeParams.put(KParams.Key.OPEN_CAMERA_SIGN, mOpenCameraSign);
-            closeParams.put(KParams.Key.CAMERA_ID, mCameraId);
-            int closeResult = mKCameraDevice.closeCameraDevice(closeParams);
-            closeParams.put(KParams.Key.CLOSE_CAMERA_STATUS, closeResult);
-            KLog.i("close camera , mCameraId:" + mCameraId  +
-                    "  this openCameraSign :" + mOpenCameraSign +
-                    "  closeResult:" + closeResult);
-
-            if (closeResult != KParams.Value.CLOSE_STATE.DEVICE_CLOSED_CHECK_SIGN_FAIL) {
-                mOpenCameraSign = 0L;
-            }
-
-            if (mCameraSession != null) {
-                mCameraSession.close();
-                mCameraSession = null;
-            }
-            emitter.onNext(closeParams);
-        }).subscribeOn(mKCameraDevice.getCameraScheduler(KCameraDevice.SCHEDULER_TYPE_CLOSE_CAMERA));
+        }).subscribeOn(mKCameraDevice.getCameraScheduler());
     }
 
     @Override

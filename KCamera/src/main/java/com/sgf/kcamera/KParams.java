@@ -87,6 +87,7 @@ public class KParams {
 //        String CAMERA_OPEN_ERROR = "camera_open_error";
         String CAMERA_DEVICE_CLOSE = "camera_device_close";
         String CAMERA_OPEN_EXCEPTION = "camera_open_Exception";
+        String CAMERA_OPEN_REQUEST_LOCK_FAIL = "camera_open_request_lock_fail";
 
         interface CAPTURE_STATE {
             int CAPTURE_START = 1;
@@ -95,10 +96,35 @@ public class KParams {
         }
 
         interface CLOSE_STATE {
+            /**
+             * 关闭时 device 为 null
+             */
             int DEVICE_NULL = 0;
-            int DEVICE_CLOSED = 1;
-            int DEVICE_CLOSED_CHECK_SIGN_FAIL = 2;
-            int DEVICE_CLOSED_REQ_LOCK_FAIL = 3;
+            /**
+             * 成功关闭了一个 device
+             */
+            int DEVICE_CLOSED = DEVICE_NULL + 1;
+            /**
+             * 关闭所有的device
+             */
+            int DEVICE_CLOSED_ALL_DEVICE  = DEVICE_CLOSED + 1;
+            /**
+             * 关闭前校验打开sign 失败
+             */
+            int DEVICE_CLOSED_CHECK_SIGN_FAIL = DEVICE_CLOSED_ALL_DEVICE + 1;
+            /**
+             * 在打开队列中发现一个没有执行打开camera 的任务并移除
+             */
+            int DEVICE_CLOSED_REMOVE_OPEN_RUNNABLE = DEVICE_CLOSED_CHECK_SIGN_FAIL + 1;
+            /**
+             * 在打开camera之前执行的关闭任务
+             */
+            int DEVICE_CLOSED_RUNNABLE_PUSH_HANDLER = DEVICE_CLOSED_REMOVE_OPEN_RUNNABLE + 1;
+
+            /**
+             * 关闭camera时遇到的异常
+             */
+            int DEVICE_CLOSED_EXCEPTION = DEVICE_CLOSED_RUNNABLE_PUSH_HANDLER + 1;
         }
     }
 

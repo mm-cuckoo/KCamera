@@ -1,48 +1,61 @@
 package com.sgf.kcamera;
 
+import androidx.annotation.IntRange;
+
 public class KException extends Exception {
-    public final int errorCode;
+    public final int code;
     public final KParams params;
 
-    public KException(String errorMsg) {
-        super(errorMsg);
-        this.errorCode = 0;
+    private static final int CODE_DEF = -1;
+    public static final int CODE_CAMERA_IN_USE = 1;
+    public static final int CODE_MAX_CAMERAS_IN_USE = 2;
+    public static final int CODE_CAMERA_DISABLED = 3;
+    public static final int CODE_CAMERA_DEVICE = 4;
+    public static final int CODE_CAMERA_SERVICE = 5;
+    public static final int CODE_CAMERA_DISCONNECTED = 6;
+
+
+
+    public KException(String message) {
+        super(message);
+        this.code = CODE_DEF;
         this.params = null;
     }
 
-    public KException(String errorMsg, int errorCode) {
-        super(errorMsg);
-        this.errorCode = errorCode;
+    public KException(String message, @IntRange(from = 0, to = 9999) int code) {
+        super(message);
+        this.code = code;
         this.params = null;
     }
 
-    public KException(String errorMsg, Throwable throwable) {
-        super(errorMsg, throwable);
-        this.errorCode = 0;
+    public KException(String message, Throwable throwable) {
+        super(message, throwable);
+        this.code = CODE_DEF;
         this.params = null;
     }
 
-    public KException(String errorMsg, int errorCode, Throwable throwable) {
-        super(errorMsg, throwable);
-        this.errorCode = errorCode;
+    public KException(String message, int code, Throwable throwable) {
+        super(message, throwable);
+        this.code = code;
         this.params = null;
     }
 
-    public KException(String errorMsg, int errorCode, Throwable throwable, KParams params) {
-        super(errorMsg, throwable);
-        this.errorCode = errorCode;
+    public KException(String message, int code, Throwable throwable, KParams params) {
+        super(message, throwable);
+        this.code = code;
         this.params = params;
     }
 
-    public KException(String errorMsg, KParams params) {
-        super(errorMsg);
+    public KException(String message, KParams params) {
+        super(message);
         this.params = params;
-        this.errorCode = 0;
+        this.code = 0;
     }
 
-    public KException(String errorMsg, int errorCode, KParams params) {
-        super(errorMsg);
+    public KException(String message, int code, KParams params) {
+        super(message);
         this.params = params;
-        this.errorCode = errorCode;
+        this.code = code;
     }
+
 }
