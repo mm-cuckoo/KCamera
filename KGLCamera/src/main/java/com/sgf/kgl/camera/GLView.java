@@ -30,8 +30,8 @@ public class GLView extends GLSurfaceView {
 	private int mDisplayRotation;
 
 	public interface GLSurfaceTextureListener {
-		void onSurfaceTextureAvailable(SurfaceTexture surface, int width, int height);
-		void onSurfaceChanged(final SurfaceTexture surface, final int width, final int height);
+		void onSurfaceTextureAvailable(SurfaceTexture surfaceTexture, int width, int height);
+		void onSurfaceChanged(final SurfaceTexture surfaceTexture, final int width, final int height);
 		void onSurfaceTextureDestroyed();
 	}
 
@@ -93,7 +93,7 @@ public class GLView extends GLSurfaceView {
 		return mVideoHeight;
 	}
 
-	public SurfaceTexture getSurfaceTexture() {
+	private SurfaceTexture getSurfaceTexture() {
 		KLog.i( "getSurfaceTexture:");
 		return mRenderer != null ? mRenderer.mSTexture : null;
 	}

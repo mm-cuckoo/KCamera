@@ -16,13 +16,15 @@ public class GLViewProvider implements PreviewSurfaceProvider {
     private final GLView mTextureView;
     private Size mPreviewSize;
     private Surface mSurface;
+    private SurfaceTexture mSurfaceTexture;
 
     public GLViewProvider(GLView textureView) {
         this.mTextureView = textureView;
         GLView.GLSurfaceTextureListener mTextureListener = new GLView.GLSurfaceTextureListener() {
             @Override
-            public void onSurfaceTextureAvailable(SurfaceTexture surface, int width, int height) {
-                mSurface = new Surface(surface);
+            public void onSurfaceTextureAvailable(SurfaceTexture surfaceTexture, int width, int height) {
+                mSurfaceTexture = surfaceTexture;
+
                 if (mPreviewSize != null) {
                     Size swapWH;
                     if (width < height && mPreviewSize.getWidth() < mPreviewSize.getHeight()) {
@@ -31,10 +33,10 @@ public class GLViewProvider implements PreviewSurfaceProvider {
                         swapWH = new Size(mPreviewSize.getHeight(), mPreviewSize.getWidth());
                     }
                     KLog.d("setDefaultBufferSize: w:" + width + "   h:" + height + " PreviewSize:wh:" + mPreviewSize + "  swapWH:" + swapWH);
-                    surface.setDefaultBufferSize(mPreviewSize.getWidth(), mPreviewSize.getHeight());
+                    surfaceTexture.setDefaultBufferSize(mPreviewSize.getWidth(), mPreviewSize.getHeight());
                 } else  {
                     KLog.d("setDefaultBufferSize: w:" + width + "   h:" + height);
-                    surface.setDefaultBufferSize(width, height);
+                    surfaceTexture.setDefaultBufferSize(width, height);
                 }
                 sendNotify();
             }
@@ -47,16 +49,14 @@ public class GLViewProvider implements PreviewSurfaceProvider {
             @Override
             public void onSurfaceTextureDestroyed() {
                 mSurface = null;
+                mSurfaceTexture = null;
             }
         };
         this.mTextureView.setSurfaceTextureListener(mTextureListener);
     }
 
     public Surface getSurface() {
-        if (mSurface == null) {
-            mSurface = new Surface(mTextureView.getSurfaceTexture());
-        }
-
+        createSurfaceIfNeed();
         if (!mSurface.isValid()) {
             KLog.e("getSurface Surface isValid false ");
         }
@@ -64,16 +64,16 @@ public class GLViewProvider implements PreviewSurfaceProvider {
     }
 
     public boolean isAvailable() {
-        if (!av()) {
+        if (!surfaceAvailable()) {
             synchronized (obj) {
-                if (!av()) {
+                if (!surfaceAvailable()) {
                     try {
                         obj.wait(10 * 1000);
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
                 }
-                if (!av()) {
+                if (!surfaceAvailable()) {
                     return false;
                 }
             }
@@ -83,8 +83,37 @@ public class GLViewProvider implements PreviewSurfaceProvider {
         return true;
     }
 
-    private boolean av() {
-        return mTextureView.isAvailable() && mSurface != null && mSurface.isValid();
+    private boolean surfaceAvailable() {
+        return mTextureView.isAvailable() && surfaceValid();
+    }
+
+    private boolean surfaceValid() {
+        Surface surface = getSurface();
+        if (surface != null) {
+            return surface.isValid();
+        } else {
+            return false;
+        }
+    }
+
+    private boolean textureAvailable() {
+        return mSurfaceTexture != null;
+    }
+
+    private void createSurfaceIfNeed() {
+        synchronized (obj) {
+            if (!textureAvailable()) {
+                try {
+                    KLog.e("texture surface available wait ===>>");
+                    obj.wait(10 * 1000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+            if (textureAvailable()) {
+                mSurface = new Surface(mSurfaceTexture);
+            }
+        }
     }
 
 
