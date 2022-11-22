@@ -16,11 +16,12 @@ import io.reactivex.android.schedulers.AndroidSchedulers;
  */
 public class WorkerHandlerManager {
     public enum Tag {
-        T_TYPE_DATA("data-thread"),
-        T_TYPE_BUSINESS("business-thread"),
-        T_TYPE_IMAGE_SURFACE("image-surface-thread"),
-        T_TYPE_CAMERA("camera-thread"),
-        T_TYPE_CAMERA_RUNNER("camera-thread-runner");
+        T_TYPE_DATA("t-data"),
+        T_TYPE_BUSINESS("t-business"),
+        T_TYPE_IMAGE_SURFACE("t-image-surface"),
+        T_TYPE_CAMERA_SCHEDULER("t-camera-scheduler"),
+        T_TYPE_CAMERA_RUNNER("t-camera-runner"),
+        T_TYPE_CAMERA_HANDLER("t-camera-handler");
         private final String tag;
         Tag(String tag) {
             this.tag = tag;

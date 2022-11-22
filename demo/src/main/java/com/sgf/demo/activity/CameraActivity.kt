@@ -343,6 +343,10 @@ class CameraActivity : AppCompatActivity() , CaptureStateListener,
             }
 
         }
+
+        override fun onCameraError(throwable: Throwable?) {
+
+        }
     }
 
     private val frameCountRunner = object : Runnable {

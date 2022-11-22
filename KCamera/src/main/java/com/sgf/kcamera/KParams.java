@@ -103,28 +103,27 @@ public class KParams {
             /**
              * 成功关闭了一个 device
              */
-            int DEVICE_CLOSED = DEVICE_NULL + 1;
+            int DEVICE_CLOSED = 1;
             /**
              * 关闭所有的device
              */
-            int DEVICE_CLOSED_ALL_DEVICE  = DEVICE_CLOSED + 1;
+            int DEVICE_CLOSED_ALL_DEVICE  = 2;
             /**
              * 关闭前校验打开sign 失败
              */
-            int DEVICE_CLOSED_CHECK_SIGN_FAIL = DEVICE_CLOSED_ALL_DEVICE + 1;
+            int DEVICE_CLOSED_CHECK_SIGN_FAIL = 3;
             /**
              * 在打开队列中发现一个没有执行打开camera 的任务并移除
              */
-            int DEVICE_CLOSED_REMOVE_OPEN_RUNNABLE = DEVICE_CLOSED_CHECK_SIGN_FAIL + 1;
+            int DEVICE_CLOSED_REMOVE_OPEN_RUNNABLE = 4;
             /**
              * 在打开camera之前执行的关闭任务
              */
-            int DEVICE_CLOSED_RUNNABLE_PUSH_HANDLER = DEVICE_CLOSED_REMOVE_OPEN_RUNNABLE + 1;
-
+            int DEVICE_CLOSED_RUNNABLE_PUSH_HANDLER = 5;
             /**
              * 关闭camera时遇到的异常
              */
-            int DEVICE_CLOSED_EXCEPTION = DEVICE_CLOSED_RUNNABLE_PUSH_HANDLER + 1;
+            int DEVICE_CLOSED_EXCEPTION = 6;
         }
     }
 

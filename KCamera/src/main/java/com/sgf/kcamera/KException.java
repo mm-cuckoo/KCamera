@@ -13,6 +13,7 @@ public class KException extends Exception {
     public static final int CODE_CAMERA_DEVICE = 4;
     public static final int CODE_CAMERA_SERVICE = 5;
     public static final int CODE_CAMERA_DISCONNECTED = 6;
+    public static final int CODE_CAMERA_REQUEST_LOCK_FAIL = 7;
 
 
 

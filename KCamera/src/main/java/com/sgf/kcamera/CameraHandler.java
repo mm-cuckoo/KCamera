@@ -39,7 +39,7 @@ public class CameraHandler {
     private CameraStateListener mCameraStateListener;
     private KCustomerRequestStrategy requestStrategy;
     private CameraID mCameraId;
-    private volatile Long mOpenCameraSign = 0L;
+    private volatile Long mOpenCameraSign;
 
     public CameraHandler(Context context, ConfigWrapper configWrapper) {
         CameraSessionManager sessionManager = CameraSessionManagerImpl.getInstance(context);
@@ -48,6 +48,7 @@ public class CameraHandler {
         mConfig = configWrapper;
         mCameraInfoManager = CameraInfoManagerImpl.CAMERA_INFO_MANAGER;
         mSurfaceManager = new SurfaceManager();
+        mOpenCameraSign = System.currentTimeMillis();
     }
 
     public final CameraID getCameraId() {
@@ -55,7 +56,6 @@ public class CameraHandler {
     }
 
     public final synchronized void onOpenCamera(@NonNull PreviewRequest request, final CameraStateListener listener) {
-        mOpenCameraSign = System.currentTimeMillis();
         mSurfaceManager.release();
         mCameraStateListener = listener;
         mCameraId = request.getCameraId();

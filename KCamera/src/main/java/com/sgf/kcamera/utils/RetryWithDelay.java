@@ -9,7 +9,7 @@ import io.reactivex.Observable;
 import io.reactivex.ObservableSource;
 import io.reactivex.functions.Function;
 
-public class RetryWithDelay implements Function<Observable<Throwable>, ObservableSource<Long>> {
+public abstract class RetryWithDelay implements Function<Observable<Throwable>, ObservableSource<Long>> {
     private final int retryDelayMillis;
     private final int retryMaxCount;
     private int retryCount;
@@ -36,14 +36,22 @@ public class RetryWithDelay implements Function<Observable<Throwable>, Observabl
         });
     }
 
+    /**
+     * 检查重试条件
+     * @param code : 错误码
+     */
     private boolean checkRetry(int code) {
-        if (retryCount < retryMaxCount
-                && code >= KException.CODE_CAMERA_IN_USE
-                && code <= KException.CODE_CAMERA_SERVICE
-        ) {
+        boolean isTry = isTry(code);
+        if (retryCount < retryMaxCount && isTry) {
             retryCount ++;
             return true;
         }
         return false;
     }
+
+    /**
+     * 重试条件
+     * @param code ： 错误码
+     */
+    public abstract boolean isTry(int code);
 }

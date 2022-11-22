@@ -2,16 +2,15 @@ package com.sgf.kcamera.camera.session;
 
 import android.hardware.camera2.CameraAccessException;
 import android.hardware.camera2.CameraCaptureSession;
-import android.hardware.camera2.CameraDevice;
 import android.hardware.camera2.CaptureRequest;
 
 import androidx.annotation.NonNull;
 
+import com.sgf.kcamera.KException;
 import com.sgf.kcamera.KParams;
 import com.sgf.kcamera.camera.device.KCameraDevice;
 import com.sgf.kcamera.log.KLog;
 import com.sgf.kcamera.surface.SurfaceManager;
-import com.sgf.kcamera.utils.RetryWithDelay;
 import com.sgf.kcamera.utils.WorkerHandlerManager;
 
 import io.reactivex.Observable;
@@ -26,7 +25,6 @@ import io.reactivex.functions.Function;
 public class CameraSessionImpl implements CameraSession {
     private final KCameraDevice mKCameraDevice;
     private CameraCaptureSession mCameraSession;
-    private CameraDevice mCameraDevice;
     private volatile String mCameraId;
 
     CameraSessionImpl(KCameraDevice cameraDevice) {
@@ -37,47 +35,44 @@ public class CameraSessionImpl implements CameraSession {
     public Observable<KParams> onOpenCamera(final KParams openParams) {
         mCameraId = openParams.get(KParams.Key.CAMERA_ID);
         KLog.d("open camera device ===> camera id:" + mCameraId);
-        return mKCameraDevice.openCameraDevice(openParams).map(openResult -> {
-            // 打开Camera成功后获取Camera Device
-            mCameraDevice = openResult.get(KParams.Key.CAMERA_DEVICE);
-            // 打开时的签名信息， 该信息用于关闭camera device 时校验使用
-//            mOpenCameraSign = openResult.get(KParams.Key.OPEN_CAMERA_SIGN, 0L);
-            return openResult;
-            // 如果打开失败会在此处进出3次重试，每次间隔300毫秒
-        }).subscribeOn(mKCameraDevice.getCameraScheduler())
-                .retryWhen(new RetryWithDelay(3, 500));
+        return mKCameraDevice.openCameraDevice(openParams).subscribeOn(mKCameraDevice.getCameraScheduler())
+                .retryWhen(new OpenCameraErrorRetry(3, 500));
     }
 
     @Override
     public CaptureRequest.Builder onCreateRequestBuilder(int templateType) throws CameraAccessException {
-        return mCameraDevice.createCaptureRequest(templateType);
+        KParams params = new KParams();
+        params.put(KParams.Key.CAMERA_ID, mCameraId);
+        return mKCameraDevice.getCameraDevice(params).createCaptureRequest(templateType);
     }
     public Observable<KParams> onCreateCaptureSession(final KParams captureParams) {
         KLog.d("onCreateCaptureSession: captureParams：" + captureParams);
         final SurfaceManager surfaceManager = captureParams.get(KParams.Key.SURFACE_MANAGER);
         return Observable.create((ObservableOnSubscribe<KParams>) emitter -> {
-            try {
-                mCameraDevice.createCaptureSession(surfaceManager.getTotalSurface(), new CameraCaptureSession.StateCallback() {
-                    @Override
-                    public void onConfigured(@NonNull CameraCaptureSession session) {
-                        KLog.i("onConfigured: create session success");
-                        mCameraSession = session;
-                        emitter.onNext(captureParams);
-                    }
+                    try {
+                        KParams params = new KParams();
+                        params.put(KParams.Key.CAMERA_ID, mCameraId);
+                        mKCameraDevice.getCameraDevice(params).createCaptureSession(surfaceManager.getTotalSurface(), new CameraCaptureSession.StateCallback() {
+                            @Override
+                            public void onConfigured(@NonNull CameraCaptureSession session) {
+                                KLog.i("onConfigured: create session success");
+                                mCameraSession = session;
+                                emitter.onNext(captureParams);
+                            }
 
-                    @Override
-                    public void onConfigureFailed(@NonNull CameraCaptureSession session) {
-                        KLog.i("onConfigureFailed: create session fail");
-                        //emitter.onError(new KException("Create Preview Session failed  "));
-                    }
-                }, null);
-            } catch (Exception e) {
+                            @Override
+                            public void onConfigureFailed(@NonNull CameraCaptureSession session) {
+                                KLog.e("onConfigureFailed: create session fail");
+                                emitter.onError(new KException("Create Preview Session failed  "));
+                            }
+                        }, null);
+                    } catch (Exception e) {
 //                emitter.onError(new KException("Create Preview Session Exception", KCode.ERROR_CODE_SESSION_CREATE_EXCEPTION));
-                KLog.e("onCreateCaptureSession :  Exception :" + e );
-                e.printStackTrace();
-            }
-        }).subscribeOn(mKCameraDevice.getCameraScheduler())
-                .retryWhen(new RetryWithDelay(3, 5000));
+                        KLog.e("onCreateCaptureSession :  Exception :" + e );
+                        e.printStackTrace();
+                    }
+                }).subscribeOn(mKCameraDevice.getCameraScheduler())
+                .retryWhen(new CreateSessionErrorRetry(6, 500));
     }
 
     @Override
@@ -114,7 +109,7 @@ public class CameraSessionImpl implements CameraSession {
         KLog.i("capture =>" + captureParams);
         CaptureRequest.Builder requestBuilder = captureParams.get(KParams.Key.REQUEST_BUILDER);
         CameraCaptureSession.CaptureCallback captureCallback = captureParams.get(KParams.Key.CAPTURE_CALLBACK);
-        mCameraSession.capture(requestBuilder.build(), captureCallback, WorkerHandlerManager.getHandler(WorkerHandlerManager.Tag.T_TYPE_CAMERA));
+        mCameraSession.capture(requestBuilder.build(), captureCallback, WorkerHandlerManager.getHandler(WorkerHandlerManager.Tag.T_TYPE_CAMERA_SCHEDULER));
     }
 
     @Override

@@ -1,6 +1,8 @@
 package com.sgf.kcamera.camera.device;
 
 
+import android.hardware.camera2.CameraDevice;
+
 import com.sgf.kcamera.KParams;
 
 import io.reactivex.Observable;
@@ -16,6 +18,8 @@ public interface KCameraDevice {
      * @param openParam : 打开 camera device 参数
      */
     Observable<KParams> openCameraDevice(KParams openParam);
+
+    CameraDevice getCameraDevice(KParams params);
 
     /**
      * Camera 线程调度器，该调度器负责Camera  device ,session 的执行
