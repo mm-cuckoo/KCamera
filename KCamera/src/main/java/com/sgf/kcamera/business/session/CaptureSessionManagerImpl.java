@@ -59,6 +59,7 @@ public class CaptureSessionManagerImpl extends BaseCaptureSessionManager {
         return Observable.create((ObservableOnSubscribe<KParams>) emitter -> {
             CaptureRequest.Builder previewBuilder = getPreviewBuilder();
             mFocusHelper.init(repeatingParams.get(KParams.Key.PREVIEW_SIZE));
+            mZoomHelper.init();
             KCustomerRequestStrategy requestStrategy = repeatingParams.get(KParams.Key.CUSTOMER_REQUEST_STRATEGY);
             if (requestStrategy != null) {
                 String cameraId = repeatingParams.get(KParams.Key.CAMERA_ID);
