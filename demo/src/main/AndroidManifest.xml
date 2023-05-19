@@ -10,9 +10,9 @@
 
     <application
         android:allowBackup="true"
-        android:icon="@mipmap/ic_launcher"
+        android:icon="@mipmap/app_camera"
         android:label="@string/app_name"
-        android:roundIcon="@mipmap/ic_launcher_round"
+        android:roundIcon="@mipmap/app_camera"
         android:supportsRtl="true"
         android:theme="@style/Theme.KCamera"
         android:hardwareAccelerated="true"
@@ -33,14 +33,11 @@
 
         <activity android:name=".activity.CameraActivity"
             />
-        <activity android:name=".activity.DulCameraActivity"
-            />
+
         <activity android:name=".activity.ConfigActivity"
             android:launchMode="singleTask"
             />
 
-        <activity android:name=".activity.GLCameraActivity"
-            />
     </application>
 
 </manifest>

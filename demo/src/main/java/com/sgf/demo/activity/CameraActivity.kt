@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.content.Intent
 import android.graphics.Bitmap
 import android.hardware.camera2.CaptureResult
+import android.media.MediaScannerConnection
 import android.os.*
 import android.view.MotionEvent
 import android.view.View
@@ -39,8 +40,6 @@ class CameraActivity : AppCompatActivity() , CaptureStateListener,
     private lateinit var preview : AutoFitTextureView
     private lateinit var glPreview : CameraGLView
 
-//    private lateinit var previewProvider : PreviewSurfaceProvider
-//    private lateinit var previewProvider2 : PreviewSurfaceProvider
     private lateinit var glPreviewProvider : PreviewSurfaceProvider
 
     private lateinit var cameraInfo: TextView
@@ -91,8 +90,6 @@ class CameraActivity : AppCompatActivity() , CaptureStateListener,
         focusView.initFocusArea(400, 400)
         focusView.visibility = View.GONE
         findViewById<ConstraintLayout>(R.id.root_view).addView(focusView)
-//        previewProvider = PreviewSurfaceProviderImpl(preview)
-//        previewProvider2 = PreviewSurfaceProviderImpl(surfaceView1)
         glPreviewProvider = GLViewProvider(glPreview)
         videoRecordManager = VideoRecordManager(glPreview)
 
@@ -296,6 +293,7 @@ class CameraActivity : AppCompatActivity() , CaptureStateListener,
         orientationFilter.onPause()
         kCamera.closeCamera()
         glPreview.onPause()
+        MediaScannerConnection.scanFile(AppApplication.context, arrayOf( FilePathUtils.getRootPath()), null, null)
     }
 
     override fun onDestroy() {
