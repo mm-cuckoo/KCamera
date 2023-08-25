@@ -8,6 +8,7 @@ import com.sgf.kcamera.KCustomerRequestStrategy;
 public class RepeatRequest {
     private final Integer mEv;
     private final Float mZoomSize;
+    private final Float mFocalLength;
     private final Integer mFlashState;
     private final Pair<Float, Float> mAfTouchXY;
     private final boolean mIsResetFocus;
@@ -16,6 +17,7 @@ public class RepeatRequest {
     private RepeatRequest(Builder builder) {
         mEv = builder.mEv;
         mZoomSize = builder.mZoomSize;
+        mFocalLength = builder.mFocalLength;
         mFlashState = builder.mFlashState;
         mAfTouchXY = builder.mAfTouchXY;
         mIsResetFocus = builder.mIsResetFocus;
@@ -24,6 +26,10 @@ public class RepeatRequest {
 
     public Float getZoomSize() {
         return mZoomSize;
+    }
+
+    public Float getFocalLength() {
+        return mFocalLength;
     }
 
     public Integer getEv() {
@@ -54,6 +60,7 @@ public class RepeatRequest {
         private Integer mFlashState;
         private Integer mEv;
         private Float mZoomSize;
+        private Float mFocalLength;
         private Pair<Float, Float> mAfTouchXY;
         private boolean mIsResetFocus = false;
         private KCustomerRequestStrategy mKCustomerRequestStrategy;
@@ -70,6 +77,10 @@ public class RepeatRequest {
 
         public Builder setZoom(float value) {
             mZoomSize = value;
+            return this;
+        }
+        public Builder setFocalLength(float value) {
+            mFocalLength = value;
             return this;
         }
         public Builder setAfTouchXY(float x, float y) {

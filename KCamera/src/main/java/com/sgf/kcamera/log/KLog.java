@@ -5,7 +5,7 @@ import android.util.Log;
 
 public class KLog {
 
-    private static String sTag = "";
+    private static String sTag = "k-camera";
 
     private static boolean debug = false;
 
@@ -25,34 +25,61 @@ public class KLog {
         if (!debug) {
             return;
         }
-        String className = new Exception().getStackTrace()[1].getFileName();
-        className = className.substring(0, className.indexOf("."));
-        Log.d(printTagFormat(className),message);
+        try {
+            String className = new Exception().getStackTrace()[1].getFileName();
+            className = className.substring(0, className.indexOf("."));
+            Log.d(printTagFormat(className),message);
+        } catch (Exception e) {
+            e.printStackTrace();
+            Log.d(printTagFormat(null),message);
+        }
     }
 
     public static void e(String message) {
-        String className = new Exception().getStackTrace()[1].getFileName();
-        className = className.substring(0, className.indexOf("."));
-        Log.e(printTagFormat(className),message);
+        try {
+            String className = new Exception().getStackTrace()[1].getFileName();
+            className = className.substring(0, className.indexOf("."));
+            Log.e(printTagFormat(className),message);
+        }catch (Exception e) {
+            e.printStackTrace();
+            Log.e(printTagFormat(null),message);
+        }
     }
 
     public static void i(String message) {
-        String className = new Exception().getStackTrace()[1].getFileName();
-        className = className.substring(0, className.indexOf("."));
-        Log.i(printTagFormat(className),message);
+        try {
+            String className = new Exception().getStackTrace()[1].getFileName();
+            className = className.substring(0, className.indexOf("."));
+            Log.i(printTagFormat(className),message);
+        } catch (Exception e) {
+            e.printStackTrace();
+            Log.i(printTagFormat(null),message);
+        }
     }
 
     public static void w(String message) {
-        String className = new Exception().getStackTrace()[1].getFileName();
-        className = className.substring(0, className.indexOf("."));
-        Log.w(printTagFormat(className),message);
+        try {
+            String className = new Exception().getStackTrace()[1].getFileName();
+            className = className.substring(0, className.indexOf("."));
+            Log.w(printTagFormat(className),message);
+        } catch (Exception e) {
+            e.printStackTrace();
+            Log.w(printTagFormat(null),message);
+        }
     }
 
     private static String printTagFormat(String className) {
-        Thread thread = Thread.currentThread();
-        String resultLog = className.concat("[").concat(thread.getName()).concat("]").concat("[").concat(className).concat("]");
-        if (!TextUtils.isEmpty(sTag)) {
-            resultLog = resultLog.concat("[").concat(sTag).concat("]");
+        String resultLog = sTag;
+        if (className != null) {
+            try {
+                Thread thread = Thread.currentThread();
+                resultLog = className.concat("[").concat(thread.getName()).concat("]");
+                if (!TextUtils.isEmpty(sTag)) {
+                    resultLog = resultLog.concat("[").concat(sTag).concat("]");
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
         return resultLog;
     }

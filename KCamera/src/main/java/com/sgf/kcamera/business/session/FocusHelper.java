@@ -8,6 +8,7 @@ import android.util.Size;
 import androidx.annotation.NonNull;
 
 import com.sgf.kcamera.camera.info.CameraInfoManager;
+import com.sgf.kcamera.log.KLog;
 import com.sgf.kcamera.utils.CoordinateTransformer;
 
 public class FocusHelper {
@@ -16,6 +17,8 @@ public class FocusHelper {
     private final Rect mFocusRect;
     private CoordinateTransformer mTransformer;
     private Rect mPreviewRect;
+    private Rect mSensorActiveArray;
+    private Size mSensorPixelArraySize;
 
     public FocusHelper(CameraInfoManager manager) {
         this.mCameraInfoManager = manager;
@@ -25,6 +28,10 @@ public class FocusHelper {
     public void init(@NonNull Size previewSize) {
         mPreviewRect = new Rect(0, 0, previewSize.getWidth(), previewSize.getHeight());
         mTransformer = new CoordinateTransformer(mCameraInfoManager.getCharacteristics(), rectToRectF(mPreviewRect));
+        mSensorPixelArraySize = mCameraInfoManager.getSensorPixelArraySize();
+        mSensorActiveArray = mCameraInfoManager.getSensorActiveArraySize();
+        KLog.d("mSensorPixelArraySize:" + mSensorPixelArraySize.toString());
+        KLog.d("mSensorActiveArray:" + mSensorActiveArray.toString());
 
     }
 

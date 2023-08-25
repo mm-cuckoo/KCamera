@@ -120,9 +120,12 @@ public class KCameraDeviceImpl implements KCameraDevice {
                                     "  camera id :" + cameraId +
                                     "  sign:" + openSign +
                                     "  params:" + ocp);
+                            long openStartTime = System.currentTimeMillis();
                             mCameraManager.openCamera(cameraId, new CameraDevice.StateCallback() {
                                 @Override
                                 public void onOpened(@NonNull CameraDevice camera) {
+                                    long openUseTime = System.currentTimeMillis() - openStartTime;
+                                    KLog.i("time:open camera use time :" + openUseTime);
                                     // 保存当前打开的camera device
                                     mDeviceMap.put(camera.getId(), camera);
                                     KLog.i( "camera opened ==》camera id: "  + camera.getId()  + "  sign:" + openSign + "  " + camera.hashCode());
@@ -193,7 +196,7 @@ public class KCameraDeviceImpl implements KCameraDevice {
             KParams cp = new KParams(closeParam);
             Long closeCameraSign = cp.get(KParams.Key.OPEN_CAMERA_SIGN, 0L);
 
-            // 当 openCameraSign 为 0 时会清掉打开相机中所有准备执行打开相机的任务
+           // 当 openCameraSign 为 0 时会清掉打开相机中所有准备执行打开相机的任务
             if (closeCameraSign == 0L) {
                 KLog.i("remove all handler open camera runnable");
                 mCameraHandler.removeCallbacksAndMessages(null);

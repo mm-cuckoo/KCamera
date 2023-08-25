@@ -75,7 +75,8 @@ public class SessionRequestManager {
         apply(builder, CaptureRequest.CONTROL_AF_MODE, afMode);
 
         builder.set(CaptureRequest.CONTROL_MODE, CaptureRequest.CONTROL_MODE_AUTO);
-        builder.set(CaptureRequest.CONTROL_AF_TRIGGER, CaptureRequest.CONTROL_AF_TRIGGER_IDLE);
+        builder.set(CaptureRequest.CONTROL_AF_TRIGGER, CaptureRequest.CONTROL_AF_TRIGGER_START);
+        builder.set(CaptureRequest.CONTROL_AE_PRECAPTURE_TRIGGER, CaptureRequest.CONTROL_AE_PRECAPTURE_TRIGGER_START);
     }
 
     public void applyFocusModeRequest(CaptureRequest.Builder builder, int focusMode) {
@@ -95,6 +96,15 @@ public class SessionRequestManager {
             return;
         }
         apply(builder, CaptureRequest.CONTROL_AE_EXPOSURE_COMPENSATION , value);
+    }
+
+    public void applyFocalLength(CaptureRequest.Builder builder, Float value) {
+        if (value == null || value < 0) {
+            KLog.w(" Focal Length value is null");
+            return;
+        }
+        apply(builder,CaptureRequest.CONTROL_AF_MODE, CaptureRequest.CONTROL_AF_MODE_OFF);
+        apply(builder, CaptureRequest.LENS_FOCAL_LENGTH, value);
     }
 
     public void applyZoomRect(CaptureRequest.Builder builder, Rect zoomRect) {

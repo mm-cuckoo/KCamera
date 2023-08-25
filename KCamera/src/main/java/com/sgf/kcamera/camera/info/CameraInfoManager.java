@@ -4,6 +4,7 @@ import android.graphics.Rect;
 import android.hardware.camera2.CameraCharacteristics;
 import android.util.Range;
 import android.util.Size;
+import android.util.SizeF;
 
 import com.sgf.kcamera.CameraID;
 
@@ -46,7 +47,11 @@ public interface CameraInfoManager {
 
     int getMaxZoom();
 
-    int getMaxZoom(CameraID cameraID);
+    int getSensorMaxZoom();
+
+    Size getSensorPixelArraySize();
+
+    Rect getSensorActiveArraySize();
 
     Rect getActiveArraySize();
 

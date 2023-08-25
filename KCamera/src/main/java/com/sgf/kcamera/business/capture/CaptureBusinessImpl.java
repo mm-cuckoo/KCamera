@@ -26,7 +26,8 @@ public class CaptureBusinessImpl implements CaptureBusiness {
 
     public Observable<KParams> openCamera(KParams openParams) {
         KLog.d("open camera request ===>params:" + openParams);
-        return mStateMachine.openCamera(openParams).flatMap((Function<KParams, ObservableSource<KParams>>) openResultParams -> {
+        return mStateMachine.openCamera(openParams)
+                .flatMap((Function<KParams, ObservableSource<KParams>>) openResultParams -> {
             return mStateMachine.startPreview(openResultParams);
         }).subscribeOn(WorkerHandlerManager.getScheduler(WorkerHandlerManager.Tag.T_TYPE_BUSINESS));
     }

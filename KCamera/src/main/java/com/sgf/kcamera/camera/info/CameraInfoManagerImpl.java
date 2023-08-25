@@ -4,6 +4,7 @@ import android.graphics.Rect;
 import android.hardware.camera2.CameraCharacteristics;
 import android.util.Range;
 import android.util.Size;
+import android.util.SizeF;
 
 import com.sgf.kcamera.CameraID;
 import com.sgf.kcamera.log.KLog;
@@ -11,6 +12,7 @@ import com.sgf.kcamera.log.KLog;
 public class CameraInfoManagerImpl implements CameraInfoManager {
 
     public static final CameraInfoManager CAMERA_INFO_MANAGER = new CameraInfoManagerImpl();
+    private static final int MAX_ZOOM_VALUE = 100;
 
     private CameraInfo mCameraInfo;
 
@@ -162,21 +164,37 @@ public class CameraInfoManagerImpl implements CameraInfoManager {
      */
     @Override
     public int getMaxZoom() {
+        return MAX_ZOOM_VALUE;
+    }
+
+    @Override
+    public int getSensorMaxZoom() {
         return internalGetMaxZoom(getCharacteristics());
     }
 
     @Override
-    public int getMaxZoom(CameraID cameraID) {
-        return internalGetMaxZoom(getCharacteristicsForCameraId(cameraID));
+    public Size getSensorPixelArraySize() {
+        return internalGetSensorPixelArraySize(getCharacteristics());
+    }
+
+    @Override
+    public Rect getSensorActiveArraySize() {
+        return internalGetSensorActiveArraySize(getCharacteristics());
+    }
+
+    private Size internalGetSensorPixelArraySize(CameraCharacteristics characteristics) {
+        return characteristics.get(CameraCharacteristics.SENSOR_INFO_PIXEL_ARRAY_SIZE);
+    }
+
+
+    private Rect internalGetSensorActiveArraySize(CameraCharacteristics characteristics) {
+        return characteristics.get(CameraCharacteristics.SENSOR_INFO_ACTIVE_ARRAY_SIZE);
     }
 
     private int internalGetMaxZoom(CameraCharacteristics characteristics) {
         Float maxZoom = characteristics.get(CameraCharacteristics.SCALER_AVAILABLE_MAX_DIGITAL_ZOOM);
         if (maxZoom == null) {
             maxZoom = 1f;
-        } else {
-            // 在这里扩大10倍
-            maxZoom *= 10;
         }
         return maxZoom.intValue();
     }

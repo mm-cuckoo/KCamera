@@ -22,6 +22,7 @@ public class PreviewRequest {
     private final Size mPictureSize;
     private final int mImageFormat;
     private final int mFlashState;
+    private final float mFocalLength;
     private final float mZoom;
 
     private PreviewRequest(Builder builder) {
@@ -32,6 +33,7 @@ public class PreviewRequest {
         mImageFormat = builder.mImageFormat;
         mPreviewSize = builder.mPreviewSize;
         mFlashState = builder.mFlashState;
+        mFocalLength = builder.mFocalLength;
         mZoom = builder.mZoom;
         mKCustomerRequestStrategy = builder.mKCustomerRequestStrategy;
         checkCameraId();
@@ -75,6 +77,10 @@ public class PreviewRequest {
         return mFlashState;
     }
 
+    public float getFocalLength() {
+        return mFocalLength;
+    }
+
     public KCustomerRequestStrategy getCustomerRequestStrategy() {
         return mKCustomerRequestStrategy;
     }
@@ -90,7 +96,8 @@ public class PreviewRequest {
         private Size mPreviewSize;
         private Size mPictureSize;
         private int mImageFormat;
-        private float mZoom = 1f;
+        private float mFocalLength = -1f;
+        private float mZoom = 0f;
         private int mFlashState = KParams.Value.FLASH_STATE.OFF;
 
         public Builder addPreviewSurfaceProvider(PreviewSurfaceProvider provider){
@@ -120,6 +127,11 @@ public class PreviewRequest {
 
         public Builder setZoom(float zoom) {
             mZoom = zoom;
+            return this;
+        }
+
+        public Builder setFocalLength(float length) {
+            mFocalLength = length;
             return this;
         }
 

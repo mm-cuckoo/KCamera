@@ -1,5 +1,6 @@
 package com.sgf.kcamera.camera.session;
 
+import com.sgf.kcamera.KException;
 import com.sgf.kcamera.utils.RetryWithDelay;
 
 public class OpenCameraErrorRetry extends RetryWithDelay {
@@ -9,6 +10,6 @@ public class OpenCameraErrorRetry extends RetryWithDelay {
 
     @Override
     public boolean isTry(int code) {
-        return true;
+        return  code >= KException.CODE_CAMERA_IN_USE && code <= KException.CODE_CAMERA_SERVICE;
     }
 }

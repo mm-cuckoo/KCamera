@@ -45,13 +45,13 @@ public class GLView extends GLSurfaceView {
 
 	public GLView(final Context context, final AttributeSet attrs, final int defStyle) {
 		super(context, attrs);
-		KLog.i("CameraGLView:");
 		WindowManager windowManager = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
 		mDisplayRotation = windowManager.getDefaultDisplay().getRotation() * 90;
 		mRenderer = new CameraSurfaceRenderer(this, mDisplayRotation);
 		setEGLContextClientVersion(2);	// GLES 2.0, API >= 8
 		setRenderer(mRenderer);
 		setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);
+		KLog.i("CameraGLView:mDisplayRotation:" + mDisplayRotation);
 		mRenderer.requestRender();
 /*		// the frequency of refreshing of camera preview is at most 15 fps
 		// and RENDERMODE_WHEN_DIRTY is better to reduce power consumption

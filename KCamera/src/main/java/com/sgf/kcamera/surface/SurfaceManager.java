@@ -126,7 +126,7 @@ public class SurfaceManager {
     }
 
     public void release() {
-        KLog.i("release==1111=>");
+        KLog.i("release===>");
         for (SurfaceProvider provider : mSurfaceProviders) {
             provider.release();
         }
@@ -134,7 +134,6 @@ public class SurfaceManager {
         mSurfaceProviders.clear();
         mCaptureSurface.clear();
         mPreviewSurface.clear();
-        KLog.i("release==2222=>");
     }
 
 }

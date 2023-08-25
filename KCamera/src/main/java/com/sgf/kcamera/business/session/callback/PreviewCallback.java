@@ -65,16 +65,11 @@ public class PreviewCallback extends CameraCaptureSession.CaptureCallback {
                                    @NonNull TotalCaptureResult result) {
 
 
-        //KLog.d("onCaptureCompleted=====");
         if (!mFirstFrameCompleted) {
             mFirstFrameCompleted = true;
             KParams previewParams = new KParams();
             previewParams.put(KParams.Key.PREVIEW_FIRST_FRAME, KParams.Value.OK);
             mEmitter.onNext(previewParams);
-            if (BuildConfig.DEBUG) {
-                Range<Integer> fpsRang = request.get(CaptureRequest.CONTROL_AE_TARGET_FPS_RANGE);
-                KLog.d("onCaptureCompleted====> fpsRang:" + fpsRang.toString());
-            }
             KLog.d("preview first frame call back");
         }
 

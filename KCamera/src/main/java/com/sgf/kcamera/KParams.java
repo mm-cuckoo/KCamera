@@ -146,6 +146,7 @@ public class KParams {
         public static final Key<Float> ZOOM_VALUE = new Key<>("zoom_value");
         public static final Key<Integer> FLASH_STATE = new Key<>("camera_flash_value");
         public static final Key<Integer> EV_SIZE = new Key<>("ev_size");
+        public static final Key<Float> FOCAL_LENGTH = new Key<>("focal_length");
         public static final Key<Pair<Float, Float>> AF_TRIGGER = new Key<>("af_trigger");// Pair<X, Y>
         public static final Key<Boolean> RESET_FOCUS = new Key<>("reset_focus");
 

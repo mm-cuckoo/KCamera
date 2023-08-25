@@ -58,12 +58,12 @@ public class CaptureSessionManagerImpl extends BaseCaptureSessionManager {
     public Observable<KParams> onPreviewRepeatingRequest(final KParams repeatingParams) {
         return Observable.create((ObservableOnSubscribe<KParams>) emitter -> {
             CaptureRequest.Builder previewBuilder = getPreviewBuilder();
-            mFocusHelper.init(repeatingParams.get(KParams.Key.PREVIEW_SIZE));
             mZoomHelper.init();
+            mFocusHelper.init(repeatingParams.get(KParams.Key.PREVIEW_SIZE));
             KCustomerRequestStrategy requestStrategy = repeatingParams.get(KParams.Key.CUSTOMER_REQUEST_STRATEGY);
             if (requestStrategy != null) {
                 String cameraId = repeatingParams.get(KParams.Key.CAMERA_ID);
-                requestStrategy.onBuildRequest(cameraId, previewBuilder);
+                requestStrategy.onBuildRequest(cameraId,previewBuilder);
             }
 
             mPreviewCaptureCallback.applyPreview(previewBuilder, emitter);
@@ -84,9 +84,10 @@ public class CaptureSessionManagerImpl extends BaseCaptureSessionManager {
     }
 
     private void applyPreviewRequest(CaptureRequest.Builder builder, KParams requestParams) {
-        mSessionRequestManager.applyZoomRect(builder, mZoomHelper.getZoomRect(requestParams.get(KParams.Key.ZOOM_VALUE, 1f)));// zoom
+        mSessionRequestManager.applyZoomRect(builder, mZoomHelper.getZoomRect(requestParams.get(KParams.Key.ZOOM_VALUE, 0f)));// zoom
         mSessionRequestManager.applyFlashRequest(builder, requestParams.get(KParams.Key.FLASH_STATE));// flash
         mSessionRequestManager.applyEvRange(builder, requestParams.get(KParams.Key.EV_SIZE)); // ev
+        mSessionRequestManager.applyFocalLength(builder, requestParams.get(KParams.Key.FOCAL_LENGTH)); // ev
     }
 
     private CaptureRequest.Builder getCaptureBuilder() {
@@ -113,6 +114,7 @@ public class CaptureSessionManagerImpl extends BaseCaptureSessionManager {
             setCustomerRequestStrategy(getPreviewBuilder(), requestParams);
             afTriggerRepeatingRequest(getPreviewBuilder(), requestParams);
             resetFocusRepeatingRequest(getPreviewBuilder(), requestParams);
+            focalLengthRepeatingRequest(getPreviewBuilder(), requestParams);
         });
     }
 
@@ -120,8 +122,7 @@ public class CaptureSessionManagerImpl extends BaseCaptureSessionManager {
         KCustomerRequestStrategy requestStrategy = requestParams.get(KParams.Key.CUSTOMER_REQUEST_STRATEGY);
         if (requestStrategy != null) {
             String cameraId = requestParams.get(KParams.Key.CAMERA_ID);
-
-            requestStrategy.onBuildRequest(cameraId,builder);
+            requestStrategy.onBuildRequest(cameraId, builder);
             getCameraSession().onRepeatingRequest(requestParams);
         }
     }
@@ -184,6 +185,15 @@ public class CaptureSessionManagerImpl extends BaseCaptureSessionManager {
         getCameraSession().onRepeatingRequest(requestParams);
     }
 
+    private void focalLengthRepeatingRequest(CaptureRequest.Builder builder, KParams requestParams) throws CameraAccessException {
+        Float focalLength = requestParams.get(KParams.Key.FOCAL_LENGTH);
+        if (focalLength == null || focalLength < 0) {
+            return;
+        }
+        mSessionRequestManager.applyFocalLength(builder, focalLength);
+        getCameraSession().onRepeatingRequest(requestParams);
+    }
+
     @Override
     public Observable<KParams> capture(final KParams captureParams) {
         KLog.i("capture params:" + captureParams);
@@ -195,7 +205,7 @@ public class CaptureSessionManagerImpl extends BaseCaptureSessionManager {
                 requestStrategy.onBuildRequest(cameraId,builder);
             }
 
-            builder.set(CaptureRequest.JPEG_ORIENTATION, captureParams.get(KParams.Key.PIC_ORIENTATION, 0));
+//            builder.set(CaptureRequest.JPEG_ORIENTATION, captureParams.get(KParams.Key.PIC_ORIENTATION, 0));
             mSessionRequestManager.applyAllRequest(builder);
             mCaptureCallback.prepareCapture(builder, emitter);
             boolean canTriggerAf = captureParams.get(KParams.Key.CAPTURE_CAN_TRIGGER_AF, true);

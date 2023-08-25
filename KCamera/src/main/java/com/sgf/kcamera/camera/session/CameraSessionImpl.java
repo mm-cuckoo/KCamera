@@ -49,29 +49,32 @@ public class CameraSessionImpl implements CameraSession {
         KLog.d("onCreateCaptureSession: captureParams：" + captureParams);
         final SurfaceManager surfaceManager = captureParams.get(KParams.Key.SURFACE_MANAGER);
         return Observable.create((ObservableOnSubscribe<KParams>) emitter -> {
-                    try {
-                        KParams params = new KParams();
-                        params.put(KParams.Key.CAMERA_ID, mCameraId);
-                        mKCameraDevice.getCameraDevice(params).createCaptureSession(surfaceManager.getTotalSurface(), new CameraCaptureSession.StateCallback() {
-                            @Override
-                            public void onConfigured(@NonNull CameraCaptureSession session) {
-                                KLog.i("onConfigured: create session success");
-                                mCameraSession = session;
-                                emitter.onNext(captureParams);
-                            }
-
-                            @Override
-                            public void onConfigureFailed(@NonNull CameraCaptureSession session) {
-                                KLog.e("onConfigureFailed: create session fail");
-                                emitter.onError(new KException("Create Preview Session failed  "));
-                            }
-                        }, null);
-                    } catch (Exception e) {
-//                emitter.onError(new KException("Create Preview Session Exception", KCode.ERROR_CODE_SESSION_CREATE_EXCEPTION));
-                        KLog.e("onCreateCaptureSession :  Exception :" + e );
-                        e.printStackTrace();
+            try {
+                KParams params = new KParams();
+                params.put(KParams.Key.CAMERA_ID, mCameraId);
+                long createSessionTime = System.currentTimeMillis();
+                mKCameraDevice.getCameraDevice(params).createCaptureSession(surfaceManager.getTotalSurface(), new CameraCaptureSession.StateCallback() {
+                    @Override
+                    public void onConfigured(@NonNull CameraCaptureSession session) {
+                        long createUseTime = System.currentTimeMillis() - createSessionTime;
+                        KLog.i("time:create session use time :" + createUseTime);
+                        KLog.i("onConfigured: create session success");
+                        mCameraSession = session;
+                        emitter.onNext(captureParams);
                     }
-                }).subscribeOn(mKCameraDevice.getCameraScheduler())
+
+                    @Override
+                    public void onConfigureFailed(@NonNull CameraCaptureSession session) {
+                        KLog.e("onConfigureFailed: create session fail");
+                        emitter.onError(new KException("Create Preview Session failed  "));
+                    }
+                }, null);
+            } catch (Exception e) {
+//                emitter.onError(new KException("Create Preview Session Exception", KCode.ERROR_CODE_SESSION_CREATE_EXCEPTION));
+                KLog.e("onCreateCaptureSession :  Exception :" + e );
+                e.printStackTrace();
+            }
+        }).subscribeOn(mKCameraDevice.getCameraScheduler())
                 .retryWhen(new CreateSessionErrorRetry(6, 500));
     }
 

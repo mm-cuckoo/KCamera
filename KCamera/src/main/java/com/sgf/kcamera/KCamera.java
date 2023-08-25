@@ -8,6 +8,7 @@ import com.sgf.kcamera.camera.info.CameraInfoManager;
 import com.sgf.kcamera.camera.info.CameraInfoManagerImpl;
 import com.sgf.kcamera.config.ConfigStrategy;
 import com.sgf.kcamera.config.ConfigWrapper;
+import com.sgf.kcamera.request.CaptureRequest;
 import com.sgf.kcamera.request.FlashState;
 import com.sgf.kcamera.request.PreviewRequest;
 import com.sgf.kcamera.request.RepeatRequest;
@@ -21,7 +22,7 @@ import io.reactivex.annotations.NonNull;
  * 对外通过该实例进行打开， 关闭，拍照等操作
  */
 public class KCamera {
-
+    private final CaptureRequest DEF_CAPTURE_REQUEST = new CaptureRequest.Builder().builder();
     private final CameraHandler mCameraHandler;
     private final CameraInfoManager mCameraInfoManager;
 
@@ -33,7 +34,7 @@ public class KCamera {
         // 加载camera 信息
         CameraInfoHelper.getInstance().load(context, WorkerHandlerManager.getHandler(WorkerHandlerManager.Tag.T_TYPE_DATA));
         // 相机camera 操作
-        mCameraHandler = new CameraHandler(context, new ConfigWrapper(strategy));
+        mCameraHandler = new CameraHandler(context.getApplicationContext(), new ConfigWrapper(strategy));
         mCameraInfoManager = CameraInfoManagerImpl.CAMERA_INFO_MANAGER;
     }
 
@@ -42,7 +43,11 @@ public class KCamera {
     }
 
     public final void takePic(final CaptureStateListener listener) {
-        mCameraHandler.onCapture(listener);
+        mCameraHandler.onCapture(DEF_CAPTURE_REQUEST ,listener);
+    }
+
+    public final void takePic(CaptureRequest request, final CaptureStateListener listener) {
+        mCameraHandler.onCapture(request ,listener);
     }
 
     public final void closeCamera() {
@@ -87,11 +92,6 @@ public class KCamera {
         return mCameraHandler.getMaxZoom();
     }
 
-    public final int getMaxZoom(CameraID cameraID) {
-        return mCameraInfoManager.getMaxZoom(cameraID);
-    }
-
-
     public final void torchFlash() {
         RepeatRequest.Builder builder = RepeatRequest.createBuilder();
 //        builder.setFlash(EsParams.Value.FLASH_STATE.TORCH);
@@ -125,6 +125,12 @@ public class KCamera {
     public final void resetFocus() {
         RepeatRequest.Builder builder = RepeatRequest.createBuilder();
         builder.resetFocus();
+        mCameraHandler.onCameraRepeating(builder.builder());
+    }
+
+    public final void setFocalLength(float value) {
+        RepeatRequest.Builder builder = RepeatRequest.createBuilder();
+        builder.setFocalLength(value);
         mCameraHandler.onCameraRepeating(builder.builder());
     }
 

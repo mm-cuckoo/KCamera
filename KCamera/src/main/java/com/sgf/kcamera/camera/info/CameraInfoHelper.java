@@ -38,7 +38,7 @@ public class CameraInfoHelper {
         if (mIsLoadFinish) {
             return;
         }
-        mCameraManager = (CameraManager) context.getSystemService(Context.CAMERA_SERVICE);
+        mCameraManager = (CameraManager) context.getApplicationContext().getSystemService(Context.CAMERA_SERVICE);
         LoadCameraInfoRunnable runnable = new LoadCameraInfoRunnable();
         if (handler ==null) {
             runnable.run();

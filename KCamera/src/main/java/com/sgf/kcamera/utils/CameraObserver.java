@@ -23,9 +23,9 @@ public class CameraObserver<T> implements Observer<T> {
     public void onError(@NonNull Throwable e) {
         KLog.e(e.getMessage());
         e.printStackTrace();
-//        if (BuildConfig.DEBUG) {
-//            throw new RuntimeException(e);
-//        }
+        if (BuildConfig.DEBUG) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
