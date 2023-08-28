@@ -1,6 +1,7 @@
 package com.sgf.kgl.camera;
 
 import android.content.Context;
+import android.content.res.Configuration;
 import android.graphics.SurfaceTexture;
 import android.opengl.EGL14;
 import android.opengl.GLES20;
@@ -51,7 +52,7 @@ public class GLView extends GLSurfaceView {
 		setEGLContextClientVersion(2);	// GLES 2.0, API >= 8
 		setRenderer(mRenderer);
 		setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);
-		KLog.i("CameraGLView:mDisplayRotation:" + mDisplayRotation);
+		KLog.i("GLView:mDisplayRotation:" + mDisplayRotation);
 		mRenderer.requestRender();
 /*		// the frequency of refreshing of camera preview is at most 15 fps
 		// and RENDERMODE_WHEN_DIRTY is better to reduce power consumption
@@ -66,6 +67,15 @@ public class GLView extends GLSurfaceView {
 
 	public int getDisplayRotation() {
 		return mDisplayRotation;
+	}
+
+	public int getOrientation() {
+		Configuration configuration = getContext().getResources().getConfiguration();
+		if (configuration == null) {
+			return getContext().getApplicationContext().getResources().getConfiguration().orientation;
+		} else {
+			return configuration.orientation;
+		}
 	}
 
 	public void setMirrorView(boolean isMirror) {

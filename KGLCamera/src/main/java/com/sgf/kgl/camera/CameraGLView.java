@@ -2,6 +2,7 @@ package com.sgf.kgl.camera;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.res.Configuration;
 import android.graphics.Point;
 import android.util.AttributeSet;
 import android.util.Size;
@@ -13,9 +14,8 @@ import com.sgf.kcamera.log.KLog;
 
 public class CameraGLView extends GLView {
 
-    private int mRatioWidth = 0;
-    private int mRatioHeight = 0;
-    private Point screenPoint;
+    private final Point screenPoint;
+    private Size mCameraPreviewSize;
     public CameraGLView(@NonNull Context context) {
         this(context, null);
     }
@@ -27,29 +27,29 @@ public class CameraGLView extends GLView {
     public CameraGLView(@NonNull Context context, @Nullable AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
         screenPoint = new Point();
-        ((Activity)context).getWindowManager().getDefaultDisplay().getSize(screenPoint);
+        ((Activity)context).getWindowManager().getDefaultDisplay().getRealSize(screenPoint);
     }
 
-//    @Override
+    @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
         super.onMeasure(widthMeasureSpec, heightMeasureSpec);
         int width = MeasureSpec.getSize(widthMeasureSpec);
         int height = MeasureSpec.getSize(heightMeasureSpec);
-        if (0 == mRatioWidth || 0 == mRatioHeight) {
+        if (mCameraPreviewSize == null) {
             setMeasuredDimension(width, height);
         } else {
-            Size dstSize = getScalingSize(new Size(mRatioWidth, mRatioHeight), new Size(screenPoint.x, screenPoint.y));
-            setMeasuredDimension(dstSize.getWidth() / 4 * 3, dstSize.getHeight() / 4 * 3);
+            Size dstSize = getScalingSize(getCameraPreviewSize(), getReferenceSize());
+            KLog.d("onMeasure:dstSize:" + dstSize);
+            setMeasuredDimension(dstSize.getWidth(), dstSize.getHeight());
         }
 
     }
 
-    public void setAspectRatio(int width, int height) {
+    public void setCameraPreview(int width, int height) {
         if (width < 0 || height < 0) {
             throw new IllegalArgumentException("Size cannot be negative.");
         }
-        mRatioWidth = width;
-        mRatioHeight = height;
+        mCameraPreviewSize = new Size(width, height);
         KLog.d("=====>width : " + width + " height:" + height);
         requestLayout();
     }
@@ -64,15 +64,33 @@ public class CameraGLView extends GLView {
         super.onPause();
     }
 
-    private Size getScalingSize(Size scalingSize, Size maxSize) {
-
-        double dstW = maxSize.getWidth();
-        double dstH = (double) maxSize.getWidth() * (double)scalingSize.getHeight() / (double)scalingSize.getWidth();
-
-        if (dstH > maxSize.getHeight()) {
-            dstH = maxSize.getHeight();
-            dstW = (double)scalingSize.getWidth() * (double)maxSize.getHeight() / (double)scalingSize.getHeight();
+    private Size getReferenceSize() {
+        int screenW = screenPoint.x;
+        int screenH = screenPoint.y;
+        return new Size(screenW, screenH);
+    }
+    private Size getCameraPreviewSize() {
+        if (getOrientation() == Configuration.ORIENTATION_PORTRAIT) {
+            return new Size(mCameraPreviewSize.getHeight(), mCameraPreviewSize.getWidth());
         }
+
+        return mCameraPreviewSize;
+    }
+
+    private Size getScalingSize(Size previewSize, Size referenceSize) {
+
+        int refW = referenceSize.getWidth();
+        int refH = referenceSize.getHeight();
+        double dstW = refW;
+        double dstH = (double) refW * (double)previewSize.getHeight() / (double)previewSize.getWidth();
+        KLog.d("getScalingSize-->dstW:"  + dstW + "  dstH:" + dstH);
+
+        if (dstH > refH) {
+            dstH = refH;
+            dstW = (double)previewSize.getWidth() * (double)refH / (double)previewSize.getHeight();
+        }
+        KLog.d("getScalingSize-r->dstW:"  + dstW + "  dstH:" + dstH);
+        KLog.d("getScalingSize-->previewSize::" + previewSize  + "  referenceSize::" + referenceSize);
         return new Size((int) dstW, (int) dstH);
     }
 }
