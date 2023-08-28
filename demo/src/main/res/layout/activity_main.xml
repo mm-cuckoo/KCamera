@@ -34,6 +34,7 @@
     <Button
         android:id="@+id/btn_open_config"
         android:layout_width="200dp"
+        android:focusable="true"
         android:layout_height="wrap_content"
         app:layout_constraintStart_toStartOf="@+id/btn_open_camera"
         app:layout_constraintEnd_toEndOf="@+id/btn_open_camera"

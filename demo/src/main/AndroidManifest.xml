@@ -14,7 +14,7 @@
         android:label="@string/app_name"
         android:roundIcon="@mipmap/app_camera"
         android:supportsRtl="true"
-        android:theme="@style/Theme.KCamera"
+        android:theme="@style/FullScreen"
         android:hardwareAccelerated="true"
         android:name=".AppApplication"
         >

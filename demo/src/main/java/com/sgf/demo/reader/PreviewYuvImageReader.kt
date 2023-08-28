@@ -10,7 +10,7 @@ import com.sgf.kcamera.CameraID
 import com.sgf.kcamera.utils.WorkerHandlerManager
 import java.lang.Exception
 
-class PreviewImageReader(private var yuvSize: Size, private var listener: ImageDataListener? = null) : ImageReaderProvider(TYPE.PREVIEW) {
+class PreviewYuvImageReader(private var yuvSize: Size, private var listener: ImageDataListener? = null) : ImageReaderProvider(TYPE.PREVIEW) {
     var cameraId : CameraID = CameraID.BACK
 
     private var frameCount = 0
@@ -41,10 +41,6 @@ class PreviewImageReader(private var yuvSize: Size, private var listener: ImageD
             image?.close()
             return
         }
-//        else {
-//            image?.close()
-//        }
-
 
         image?.let {
             imageByteArrayWithLock?.let { lock ->

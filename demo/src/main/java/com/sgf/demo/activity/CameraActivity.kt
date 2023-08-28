@@ -37,7 +37,6 @@ import java.util.*
 class CameraActivity : AppCompatActivity() , CaptureStateListener,
     ImageDataListener {
 
-    private lateinit var preview : AutoFitTextureView
     private lateinit var glPreview : CameraGLView
 
     private lateinit var glPreviewProvider : PreviewSurfaceProvider
@@ -76,7 +75,6 @@ class CameraActivity : AppCompatActivity() , CaptureStateListener,
         val manager: OrientationSensorManager = OrientationSensorManager.getInstance()
         orientationFilter = OrientationFilter(manager)
 
-        preview = findViewById(R.id.preview)
         glPreview = findViewById(R.id.gl_preview)
         picTextView = findViewById(R.id.tv_pic_text)
         cameraInfo = findViewById(R.id.camera_info)
@@ -94,7 +92,7 @@ class CameraActivity : AppCompatActivity() , CaptureStateListener,
         videoRecordManager = VideoRecordManager(glPreview)
 
         kCamera = KCamera(this)
-        preview.setOnTouchListener { v, event ->
+        glPreview.setOnTouchListener { v, event ->
             if (event.action == MotionEvent.ACTION_UP) {
                 orientationFilter.setOnceListener {
                     kCamera.resetFocus()
@@ -168,15 +166,10 @@ class CameraActivity : AppCompatActivity() , CaptureStateListener,
             finish()
         }
 
-        findViewById<Button>(R.id.btn_custom).setOnClickListener {
-            kCamera.openCamera(cameraRequest.getFont2Request(glPreviewProvider,this).builder(), cameraListener)
-
-        }
-
         findViewById<Button>(R.id.btn_back_camera).setOnClickListener {
             if (cameraEnable) {
                 cameraEnable = false
-                glPreview.setAspectRatio(cameraRequest.getBackPreviewSize().width, cameraRequest.getBackPreviewSize().height)
+                glPreview.setCameraPreview(cameraRequest.getBackPreviewSize().width, cameraRequest.getBackPreviewSize().height)
                 kCamera.openCamera(cameraRequest.getBackRequest(glPreviewProvider,this).builder(), cameraListener)
             } else {
                 Toast.makeText(this, "设备没有 Ready ", Toast.LENGTH_SHORT).show()
@@ -186,7 +179,7 @@ class CameraActivity : AppCompatActivity() , CaptureStateListener,
         findViewById<Button>(R.id.btn_font_camera).setOnClickListener {
             if (cameraEnable) {
                 cameraEnable = false
-                glPreview.setAspectRatio(cameraRequest.getFontPreviewSize().width, cameraRequest.getFontPreviewSize().height)
+                glPreview.setCameraPreview(cameraRequest.getFontPreviewSize().width, cameraRequest.getFontPreviewSize().height)
                 kCamera.openCamera(cameraRequest.getFontRequest(glPreviewProvider,this).builder(), cameraListener)
             } else {
                 Toast.makeText(this, "设备没有 Ready ", Toast.LENGTH_SHORT).show()
@@ -278,10 +271,10 @@ class CameraActivity : AppCompatActivity() , CaptureStateListener,
         orientationFilter.onResume()
 
         if (ConfigKey.getInt(ConfigKey.CAMERA_ID_TYPE) == ConfigKey.FONT_CAMERA_ID) {
-            glPreview.setAspectRatio(cameraRequest.getFontPreviewSize().width, cameraRequest.getFontPreviewSize().height)
+            glPreview.setCameraPreview(cameraRequest.getFontPreviewSize().width, cameraRequest.getFontPreviewSize().height)
             kCamera.openCamera(cameraRequest.getFontRequest(glPreviewProvider,this).builder(), cameraListener)
         } else {
-            glPreview.setAspectRatio(cameraRequest.getBackPreviewSize().width, cameraRequest.getBackPreviewSize().height)
+            glPreview.setCameraPreview(cameraRequest.getBackPreviewSize().width, cameraRequest.getBackPreviewSize().height)
             kCamera.openCamera(cameraRequest.getBackRequest(glPreviewProvider,this).builder(), cameraListener)
         }
     }
@@ -376,26 +369,24 @@ class CameraActivity : AppCompatActivity() , CaptureStateListener,
 
         // Create and show the dialog.
         val newFragment = SizeSelectDialog(cameraId) {
-            glPreview.setAspectRatio(it.width, it.height)
+            glPreview.setCameraPreview(it.width, it.height)
             glPreview.onPause()
             glPreview.onResume()
 
-            if (cameraId == "0") {
-                kCamera.openCamera(
-                    cameraRequest.getBackRequest(it, glPreviewProvider, this).builder(),
-                    cameraListener
-                )
-            } else if (cameraId == "2") {
-                kCamera.openCamera(
-                    cameraRequest.getFont2Request(it, glPreviewProvider, this).builder(),
-                    cameraListener
-                )
-            } else {
-                kCamera.openCamera(
-                    cameraRequest.getFontRequest(it, glPreviewProvider, this).builder(),
-                    cameraListener
-                )
+            handler.post {
+                if (cameraId == "0") {
+                    kCamera.openCamera(
+                        cameraRequest.getBackRequest(it, glPreviewProvider, this).builder(),
+                        cameraListener
+                    )
+                } else if (cameraId == "1") {
+                    kCamera.openCamera(
+                        cameraRequest.getFontRequest(it, glPreviewProvider, this).builder(),
+                        cameraListener
+                    )
+                }
             }
+
         }
         newFragment.show(ft, "dialog")
     }

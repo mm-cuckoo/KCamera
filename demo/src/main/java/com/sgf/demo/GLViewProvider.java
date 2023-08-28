@@ -1,39 +1,37 @@
 package com.sgf.demo;
 
+import android.content.res.Configuration;
 import android.graphics.SurfaceTexture;
 import android.util.Size;
 import android.view.Surface;
 
 import com.sgf.kcamera.log.KLog;
 import com.sgf.kcamera.surface.PreviewSurfaceProvider;
-import com.sgf.kgl.camera.CameraGLView;
 import com.sgf.kgl.camera.GLView;
-
-import javax.microedition.khronos.opengles.GL10;
 
 public class GLViewProvider implements PreviewSurfaceProvider {
     private final Object obj = new Object();
-    private final GLView mTextureView;
+    private final GLView mGlPreviewView;
     private Size mPreviewSize;
     private Surface mSurface;
     private SurfaceTexture mSurfaceTexture;
 
-    public GLViewProvider(GLView textureView) {
-        this.mTextureView = textureView;
+    public GLViewProvider(GLView glPreviewView) {
+        this.mGlPreviewView = glPreviewView;
         GLView.GLSurfaceTextureListener mTextureListener = new GLView.GLSurfaceTextureListener() {
             @Override
             public void onSurfaceTextureAvailable(SurfaceTexture surfaceTexture, int width, int height) {
                 mSurfaceTexture = surfaceTexture;
 
                 if (mPreviewSize != null) {
-                    Size swapWH;
-                    if (width < height && mPreviewSize.getWidth() < mPreviewSize.getHeight()) {
-                        swapWH = mPreviewSize;
-                    } else  {
-                        swapWH = new Size(mPreviewSize.getHeight(), mPreviewSize.getWidth());
+                    int rotation = mGlPreviewView.getDisplayRotation();
+                    KLog.d("rotation:" + rotation  + "   w:" + width + "  h:" + height);
+                    if (mGlPreviewView.getOrientation() == Configuration.ORIENTATION_PORTRAIT) {
+                        surfaceTexture.setDefaultBufferSize(mPreviewSize.getHeight(), mPreviewSize.getWidth());
+                    } else {
+                        surfaceTexture.setDefaultBufferSize(mPreviewSize.getWidth(), mPreviewSize.getHeight());
                     }
-                    KLog.d("setDefaultBufferSize: w:" + width + "   h:" + height + " PreviewSize:wh:" + mPreviewSize + "  swapWH:" + swapWH);
-                    surfaceTexture.setDefaultBufferSize(mPreviewSize.getWidth(), mPreviewSize.getHeight());
+                    KLog.d("setDefaultBufferSize: rotation"+ rotation + "  w:" + width + "   h:" + height + " PreviewSize:wh:" + mPreviewSize);
                 } else  {
                     KLog.d("setDefaultBufferSize: w:" + width + "   h:" + height);
                     surfaceTexture.setDefaultBufferSize(width, height);
@@ -43,6 +41,7 @@ public class GLViewProvider implements PreviewSurfaceProvider {
 
             @Override
             public void onSurfaceChanged(SurfaceTexture surface,int width, int height) {
+                KLog.d("onSurfaceChanged:w:" + width + "  h:" + height);
 
             }
 
@@ -52,7 +51,7 @@ public class GLViewProvider implements PreviewSurfaceProvider {
                 mSurfaceTexture = null;
             }
         };
-        this.mTextureView.setSurfaceTextureListener(mTextureListener);
+        this.mGlPreviewView.setSurfaceTextureListener(mTextureListener);
     }
 
     public Surface getSurface() {
@@ -84,7 +83,7 @@ public class GLViewProvider implements PreviewSurfaceProvider {
     }
 
     private boolean surfaceAvailable() {
-        return mTextureView.isAvailable() && surfaceValid();
+        return mGlPreviewView.isAvailable() && surfaceValid();
     }
 
     private boolean surfaceValid() {

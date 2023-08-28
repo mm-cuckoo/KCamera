@@ -24,11 +24,11 @@ import java.io.IOException
 import java.text.SimpleDateFormat
 import java.util.*
 
-class CapturePNGImageReader(private var picSize : Size ,private var listener: ImageDataListener? = null) : ImageReaderProvider(TYPE.CAPTURE) {
+class CapturePNGImageReader(private var listener: ImageDataListener? = null) : ImageReaderProvider(TYPE.CAPTURE) {
     @RequiresApi(Build.VERSION_CODES.M)
     override fun createImageReader(previewSize: Size, captureSize: Size): ImageReader {
-        KLog.d("createImageReader: captureSize width:" + picSize.width + "  captureSize height:" + picSize.height)
-        return ImageReader.newInstance(picSize.width, picSize.height, ImageFormat.YUV_420_888, 2)
+        KLog.d("createImageReader: captureSize width:" + captureSize.width + "  captureSize height:" + captureSize.height)
+        return ImageReader.newInstance(captureSize.width, captureSize.height, ImageFormat.YUV_420_888, 2)
     }
 
     override fun onImageAvailable(reader: ImageReader) {
