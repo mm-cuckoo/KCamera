@@ -7,6 +7,7 @@ import android.media.Image
 import android.media.ImageReader
 import android.os.Environment
 import android.util.Size
+import com.sgf.demo.activity.CameraActivity
 import com.sgf.demo.config.ConfigKey
 import com.sgf.demo.utils.FilePathUtils
 import com.sgf.demo.utils.ImageUtil
@@ -17,8 +18,11 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 class CaptureJPEGImageReader(private var listener: ImageDataListener? = null) : ImageReaderProvider(TYPE.CAPTURE) {
+    companion object {
+        private const val TAG = "CaptureJPEGImageReader"
+    }
     override fun createImageReader(previewSize: Size, captureSize: Size): ImageReader {
-        KLog.d("createImageReader: captureSize width:" + captureSize.width + "  captureSize height:" + captureSize.height)
+        KLog.d(TAG,"createImageReader: captureSize width:" + captureSize.width + "  captureSize height:" + captureSize.height)
         return ImageReader.newInstance(captureSize.width, captureSize.height, ImageFormat.JPEG, 2)
     }
 
@@ -28,7 +32,7 @@ class CaptureJPEGImageReader(private var listener: ImageDataListener? = null) : 
         val fileName = format.format(Date())
         val filePath = FilePathUtils.getRootPath()
         FilePathUtils.checkFolder(filePath)
-        KLog.d("createImageReader: pic file path:" + (filePath + fileName))
+        KLog.d(TAG,"createImageReader: pic file path:" + (filePath + fileName))
         ImageSaver(reader.acquireNextImage(), File(filePath + fileName), captureTime, listener).run()
     }
 

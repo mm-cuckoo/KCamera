@@ -9,6 +9,7 @@ import com.sgf.kcamera.log.KLog;
 import com.sgf.kcamera.surface.PreviewSurfaceProvider;
 
 public class PreviewSurfaceProviderImpl implements PreviewSurfaceProvider {
+    private static final String TAG = "PreviewSurfaceProviderImpl";
     private final Object obj = new Object();
     private final AutoFitTextureView mTextureView;
     private Size mPreviewSize;
@@ -25,13 +26,13 @@ public class PreviewSurfaceProviderImpl implements PreviewSurfaceProvider {
         }
 
         if (!mSurface.isValid()) {
-            KLog.e("==>mSurface isValid false ");
+            KLog.e(TAG,"==>mSurface isValid false ");
         }
         return mSurface;
     }
 
     public boolean isAvailable() {
-        KLog.d("subscribe: ..........");
+        KLog.d(TAG,"subscribe: ..........");
         if (!mTextureView.isAvailable()) {
             synchronized (obj) {
                 if (!mTextureView.isAvailable()) {
@@ -47,7 +48,7 @@ public class PreviewSurfaceProviderImpl implements PreviewSurfaceProvider {
             }
         }
 
-        KLog.d("SurfaceTexture isAvailable width:" + mTextureView.getWidth()  + "  height:" + mTextureView.getHeight());
+        KLog.d(TAG,"SurfaceTexture isAvailable width:" + mTextureView.getWidth()  + "  height:" + mTextureView.getHeight());
         return true;
     }
 
@@ -59,7 +60,7 @@ public class PreviewSurfaceProviderImpl implements PreviewSurfaceProvider {
 
     @Override
     public void setAspectRatio(Size size) {
-        KLog.d("setAspectRatio: size width:" + size.getWidth() + "  height:" + size.getHeight());
+        KLog.d(TAG,"setAspectRatio: size width:" + size.getWidth() + "  height:" + size.getHeight());
         mPreviewSize = size;
         mTextureView.setAspectRatio(size.getHeight(), size.getWidth());
     }
@@ -67,7 +68,7 @@ public class PreviewSurfaceProviderImpl implements PreviewSurfaceProvider {
     private final TextureView.SurfaceTextureListener mTextureListener = new TextureView.SurfaceTextureListener() {
         @Override
         public void onSurfaceTextureAvailable(SurfaceTexture surface, int width, int height) {
-            KLog.d("onSurfaceTextureAvailable: .......width:" + width  + "   height:" + height  + "     mPreviewSize:" + mPreviewSize);
+            KLog.d(TAG,"onSurfaceTextureAvailable: .......width:" + width  + "   height:" + height  + "     mPreviewSize:" + mPreviewSize);
             if (mPreviewSize != null) {
                 mTextureView.getSurfaceTexture().setDefaultBufferSize(mPreviewSize.getWidth(), mPreviewSize.getHeight());
             }
@@ -77,12 +78,12 @@ public class PreviewSurfaceProviderImpl implements PreviewSurfaceProvider {
 
         @Override
         public void onSurfaceTextureSizeChanged(SurfaceTexture surface, int width, int height) {
-            KLog.d("onSurfaceTextureSizeChanged: ....");
+            KLog.d(TAG,"onSurfaceTextureSizeChanged: ....");
         }
 
         @Override
         public boolean onSurfaceTextureDestroyed(SurfaceTexture surface) {
-            KLog.d("onSurfaceTextureDestroyed: ,,,,,,,");
+            KLog.d(TAG,"onSurfaceTextureDestroyed: ,,,,,,,");
             return false;
         }
 

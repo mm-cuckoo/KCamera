@@ -25,9 +25,12 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 class CapturePNGImageReader(private var listener: ImageDataListener? = null) : ImageReaderProvider(TYPE.CAPTURE) {
+    companion object {
+        private const val TAG = "CapturePNGImageReader"
+    }
     @RequiresApi(Build.VERSION_CODES.M)
     override fun createImageReader(previewSize: Size, captureSize: Size): ImageReader {
-        KLog.d("createImageReader: captureSize width:" + captureSize.width + "  captureSize height:" + captureSize.height)
+        KLog.d(TAG,"createImageReader: captureSize width:" + captureSize.width + "  captureSize height:" + captureSize.height)
         return ImageReader.newInstance(captureSize.width, captureSize.height, ImageFormat.YUV_420_888, 2)
     }
 
@@ -37,7 +40,7 @@ class CapturePNGImageReader(private var listener: ImageDataListener? = null) : I
         val fileName = format.format(Date())
         val filePath = FilePathUtils.getRootPath()
         FilePathUtils.checkFolder(filePath)
-        KLog.d("createImageReader: pic file path:" + (filePath + fileName))
+        KLog.d(TAG,"createImageReader: pic file path:" + (filePath + fileName))
         ImageSaver(reader.acquireNextImage(), File(filePath + fileName), captureTime,listener).run()
     }
 

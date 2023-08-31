@@ -269,7 +269,7 @@
         android:id="@+id/btn_id_group"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        app:constraint_referenced_ids="ll_btn_layout,btn_close_page,btn_config,btn_open_page"
+        app:constraint_referenced_ids="ll_btn_layout,seek_layout,btn_close_page,btn_config,btn_open_page"
         />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

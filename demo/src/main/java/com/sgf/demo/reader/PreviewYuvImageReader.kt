@@ -11,6 +11,9 @@ import com.sgf.kcamera.utils.WorkerHandlerManager
 import java.lang.Exception
 
 class PreviewYuvImageReader(private var yuvSize: Size, private var listener: ImageDataListener? = null) : ImageReaderProvider(TYPE.PREVIEW) {
+    companion object {
+        private const val TAG = "PreviewYuvImageReader"
+    }
     var cameraId : CameraID = CameraID.BACK
 
     private var frameCount = 0
@@ -56,7 +59,7 @@ class PreviewYuvImageReader(private var yuvSize: Size, private var listener: Ima
                     }
                 } catch (e: Exception) {
                     it.close()
-                    KLog.e("get image data exception")
+                    KLog.e(TAG,"get image data exception")
                 }
 
             } ?: kotlin.run {

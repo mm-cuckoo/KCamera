@@ -187,7 +187,7 @@ class ConfigActivity : AppCompatActivity() {
                     ConfigKey.pushInt(ConfigKey.CAMERA_ID_TYPE, ConfigKey.FONT_CAMERA_ID)
                 }
 
-                R.id.rb_show_yuv_to_jpeg -> {
+                R.id.rb_back_camera -> {
                     ConfigKey.pushInt(ConfigKey.CAMERA_ID_TYPE, ConfigKey.BACK_CAMERA_ID)
                 }
             }

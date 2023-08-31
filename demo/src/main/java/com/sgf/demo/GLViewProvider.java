@@ -10,6 +10,7 @@ import com.sgf.kcamera.surface.PreviewSurfaceProvider;
 import com.sgf.kgl.camera.GLView;
 
 public class GLViewProvider implements PreviewSurfaceProvider {
+    private static final String TAG = "GLViewProvider";
     private final Object obj = new Object();
     private final GLView mGlPreviewView;
     private Size mPreviewSize;
@@ -25,15 +26,14 @@ public class GLViewProvider implements PreviewSurfaceProvider {
 
                 if (mPreviewSize != null) {
                     int rotation = mGlPreviewView.getDisplayRotation();
-                    KLog.d("rotation:" + rotation  + "   w:" + width + "  h:" + height);
                     if (mGlPreviewView.getOrientation() == Configuration.ORIENTATION_PORTRAIT) {
                         surfaceTexture.setDefaultBufferSize(mPreviewSize.getHeight(), mPreviewSize.getWidth());
                     } else {
                         surfaceTexture.setDefaultBufferSize(mPreviewSize.getWidth(), mPreviewSize.getHeight());
                     }
-                    KLog.d("setDefaultBufferSize: rotation"+ rotation + "  w:" + width + "   h:" + height + " PreviewSize:wh:" + mPreviewSize);
+                    KLog.d(TAG,"setDefaultBufferSize: rotation"+ rotation + "  w:" + width + "   h:" + height + " PreviewSize:wh:" + mPreviewSize);
                 } else  {
-                    KLog.d("setDefaultBufferSize: w:" + width + "   h:" + height);
+                    KLog.d(TAG,"setDefaultBufferSize: w:" + width + "   h:" + height);
                     surfaceTexture.setDefaultBufferSize(width, height);
                 }
                 sendNotify();
@@ -41,7 +41,7 @@ public class GLViewProvider implements PreviewSurfaceProvider {
 
             @Override
             public void onSurfaceChanged(SurfaceTexture surface,int width, int height) {
-                KLog.d("onSurfaceChanged:w:" + width + "  h:" + height);
+                KLog.d(TAG,"onSurfaceChanged:w:" + width + "  h:" + height);
 
             }
 
@@ -57,7 +57,7 @@ public class GLViewProvider implements PreviewSurfaceProvider {
     public Surface getSurface() {
         createSurfaceIfNeed();
         if (!mSurface.isValid()) {
-            KLog.e("getSurface Surface isValid false ");
+            KLog.e(TAG,"getSurface Surface isValid false ");
         }
         return mSurface;
     }
@@ -78,7 +78,7 @@ public class GLViewProvider implements PreviewSurfaceProvider {
             }
         }
 
-        KLog.d("SurfaceTexture isAvailable ");
+        KLog.d(TAG,"SurfaceTexture isAvailable ");
         return true;
     }
 
@@ -103,7 +103,7 @@ public class GLViewProvider implements PreviewSurfaceProvider {
         synchronized (obj) {
             if (!textureAvailable()) {
                 try {
-                    KLog.e("texture surface available wait ===>>");
+                    KLog.e(TAG,"texture surface available wait ===>>");
                     obj.wait(10 * 1000);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
@@ -123,7 +123,7 @@ public class GLViewProvider implements PreviewSurfaceProvider {
 
     @Override
     public void setAspectRatio(Size size) {
-        KLog.i("setAspectRatio: size width:" + size.getWidth() + "  height:" + size.getHeight());
+        KLog.i(TAG,"setAspectRatio: size width:" + size.getWidth() + "  height:" + size.getHeight());
         mPreviewSize = size;
     }
 

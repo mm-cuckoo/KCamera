@@ -4,7 +4,6 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.content.SharedPreferences
 import android.util.Size
-import com.sgf.kcamera.log.KLog
 
 @SuppressLint("CommitPrefEdits")
 object ConfigKey {
@@ -53,6 +52,7 @@ object ConfigKey {
         sp = context.getSharedPreferences(SP_NAME,Context.MODE_PRIVATE)
 
         var takeType = getBoolean(TAKE_JPEG_PIC, false)
+
         if (!takeType) {
             takeType = getBoolean(TAKE_YUV_TO_JPEG_PIC, false)
         }
@@ -62,7 +62,7 @@ object ConfigKey {
         }
 
         if (!takeType) {
-            pushBoolean(TAKE_YUV_TO_JPEG_PIC, true)
+            pushBoolean(TAKE_JPEG_PIC, true)
         }
 
         val showYUV = getBoolean(SHOW_PRE_YUV, false)
@@ -72,7 +72,7 @@ object ConfigKey {
 
         val showPicType = getInt(SHOW_PIC_TYPE, -1)
         if (showPicType < 0) {
-            pushInt(SHOW_PIC_TYPE, SHOW_YUV_OT_JPEG_VALUE)
+            pushInt(SHOW_PIC_TYPE, SHOW_JPEG_VALUE)
         }
 
         val cameraIdType = getInt(CAMERA_ID_TYPE, -1)
@@ -82,7 +82,6 @@ object ConfigKey {
     }
 
     fun pushBoolean(key: String, value : Boolean) {
-        KLog.d("key:$key   value:$value")
         sp?.edit()?.putBoolean(key, value)?.apply()
     }
 

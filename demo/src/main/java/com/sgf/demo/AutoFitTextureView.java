@@ -14,6 +14,7 @@ import com.sgf.kcamera.log.KLog;
  */
 public class AutoFitTextureView extends TextureView {
 
+    private static final String TAG = "AutoFitTextureView";
     private int mRatioWidth = 0;
     private int mRatioHeight = 0;
     private Point screenPoint;
@@ -47,7 +48,7 @@ public class AutoFitTextureView extends TextureView {
         setRotation(270);
         mRatioWidth = width;
         mRatioHeight = height;
-        KLog.d("=====>width : " + width + " height:" + height);
+        KLog.d(TAG,"=====>width : " + width + " height:" + height);
         requestLayout();
     }
 

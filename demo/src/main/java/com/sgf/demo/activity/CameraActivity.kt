@@ -5,7 +5,10 @@ import android.content.Intent
 import android.graphics.Bitmap
 import android.hardware.camera2.CaptureResult
 import android.media.MediaScannerConnection
-import android.os.*
+import android.os.Build
+import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.view.MotionEvent
 import android.view.View
 import android.widget.*
@@ -36,6 +39,10 @@ import java.util.*
 
 class CameraActivity : AppCompatActivity() , CaptureStateListener,
     ImageDataListener {
+
+    companion object {
+        private const val TAG = "CameraActivity"
+    }
 
     private lateinit var glPreview : CameraGLView
 
@@ -97,7 +104,7 @@ class CameraActivity : AppCompatActivity() , CaptureStateListener,
                 orientationFilter.setOnceListener {
                     kCamera.resetFocus()
                 }
-                kCamera.setFocus(event.x, event.y)
+                kCamera.setFocus(event.x, event.y, glPreview.width, glPreview.height)
                 focusView.moveToPosition(event.x, event.y)
             }
             true
@@ -392,15 +399,15 @@ class CameraActivity : AppCompatActivity() , CaptureStateListener,
     }
 
     override fun onCaptureStarted() {
-        KLog.d("onCaptureStarted===>")
+        KLog.d(TAG,"onCaptureStarted===>")
     }
 
     override fun onCaptureCompleted() {
-        KLog.d("onCaptureCompleted===>")
+        KLog.d(TAG,"onCaptureCompleted===>")
     }
 
     override fun onCaptureFailed() {
-        KLog.d("onCaptureFailed===>")
+        KLog.d(TAG,"onCaptureFailed===>")
     }
 
     override fun onPreImageByteArray(
@@ -418,7 +425,7 @@ class CameraActivity : AppCompatActivity() , CaptureStateListener,
                 val fileName = format.format(Date())
                 val filePath = FilePathUtils.getRootPath() + "/Preview"
                 FilePathUtils.checkFolder(filePath)
-                KLog.d("createImageReader: pic file path:" + (filePath + fileName))
+                KLog.d(TAG,"createImageReader: pic file path:" + (filePath + fileName))
                 var output: FileOutputStream? = null
                 try {
                     output = FileOutputStream(File(filePath + fileName))
@@ -449,7 +456,7 @@ class CameraActivity : AppCompatActivity() , CaptureStateListener,
 
     override fun onCaptureBitmap(picType : Int, picBitmap: Bitmap ?, savePath: String, captureTime: Long) {
         val useTime = captureTime - startPicTime
-        KLog.d("take pic startTime : $startPicTime   back time : $captureTime  use Time: $useTime")
+        KLog.d(TAG,"take pic startTime : $startPicTime   back time : $captureTime  use Time: $useTime")
         picBitmap?.let {
             if (ConfigKey.getInt(ConfigKey.SHOW_PIC_TYPE, ConfigKey.SHOW_NONE_VALUE) == picType) {
                 picView.post {
