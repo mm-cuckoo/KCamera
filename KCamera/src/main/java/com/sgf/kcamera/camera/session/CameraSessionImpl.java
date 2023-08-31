@@ -23,6 +23,9 @@ import io.reactivex.functions.Function;
  * 在这个实例中会同时管理Camera Device ，在该实例中包含所有camera 的操作
  */
 public class CameraSessionImpl implements CameraSession {
+
+    private static final String TAG = "CameraSessionImpl";
+
     private final KCameraDevice mKCameraDevice;
     private CameraCaptureSession mCameraSession;
     private volatile String mCameraId;
@@ -34,7 +37,7 @@ public class CameraSessionImpl implements CameraSession {
     @Override
     public Observable<KParams> onOpenCamera(final KParams openParams) {
         mCameraId = openParams.get(KParams.Key.CAMERA_ID);
-        KLog.d("open camera device ===> camera id:" + mCameraId);
+        KLog.d(TAG,"open camera device ===> camera id:" + mCameraId);
         return mKCameraDevice.openCameraDevice(openParams).subscribeOn(mKCameraDevice.getCameraScheduler())
                 .retryWhen(new OpenCameraErrorRetry(3, 500));
     }
@@ -46,7 +49,7 @@ public class CameraSessionImpl implements CameraSession {
         return mKCameraDevice.getCameraDevice(params).createCaptureRequest(templateType);
     }
     public Observable<KParams> onCreateCaptureSession(final KParams captureParams) {
-        KLog.d("onCreateCaptureSession: captureParams：" + captureParams);
+        KLog.d(TAG,"onCreateCaptureSession: captureParams：" + captureParams);
         final SurfaceManager surfaceManager = captureParams.get(KParams.Key.SURFACE_MANAGER);
         return Observable.create((ObservableOnSubscribe<KParams>) emitter -> {
             try {
@@ -57,21 +60,21 @@ public class CameraSessionImpl implements CameraSession {
                     @Override
                     public void onConfigured(@NonNull CameraCaptureSession session) {
                         long createUseTime = System.currentTimeMillis() - createSessionTime;
-                        KLog.i("time:create session use time :" + createUseTime);
-                        KLog.i("onConfigured: create session success");
+                        KLog.i(TAG,"time:create session use time :" + createUseTime);
+                        KLog.i(TAG,"onConfigured: create session success");
                         mCameraSession = session;
                         emitter.onNext(captureParams);
                     }
 
                     @Override
                     public void onConfigureFailed(@NonNull CameraCaptureSession session) {
-                        KLog.e("onConfigureFailed: create session fail");
+                        KLog.e(TAG,"onConfigureFailed: create session fail");
                         emitter.onError(new KException("Create Preview Session failed  "));
                     }
                 }, null);
             } catch (Exception e) {
 //                emitter.onError(new KException("Create Preview Session Exception", KCode.ERROR_CODE_SESSION_CREATE_EXCEPTION));
-                KLog.e("onCreateCaptureSession :  Exception :" + e );
+                KLog.e(TAG,"onCreateCaptureSession :  Exception :" + e );
                 e.printStackTrace();
             }
         }).subscribeOn(mKCameraDevice.getCameraScheduler())
@@ -80,7 +83,7 @@ public class CameraSessionImpl implements CameraSession {
 
     @Override
     public int onRepeatingRequest(KParams requestParams) throws CameraAccessException {
-        KLog.d("onRepeatingRequest =>" + requestParams);
+        KLog.d(TAG,"onRepeatingRequest =>" + requestParams);
         final CaptureRequest.Builder requestBuilder = requestParams.get(KParams.Key.REQUEST_BUILDER);
         final CameraCaptureSession.CaptureCallback captureCallback = requestParams.get(KParams.Key.CAPTURE_CALLBACK);
         return mCameraSession.setRepeatingRequest(requestBuilder.build(), captureCallback, null);
@@ -93,7 +96,7 @@ public class CameraSessionImpl implements CameraSession {
             @Override
             public KParams apply(KParams params) {
                 int closeResult = params.get(KParams.Key.CLOSE_CAMERA_STATUS, KParams.Value.CLOSE_STATE.DEVICE_NULL);
-                KLog.i("close camera , mCameraId:" + mCameraId  +
+                KLog.i(TAG,"close camera , mCameraId:" + mCameraId  +
                         "  closeResult:" + closeResult);
 
                 if (closeResult == KParams.Value.CLOSE_STATE.DEVICE_CLOSED) {
@@ -109,7 +112,7 @@ public class CameraSessionImpl implements CameraSession {
 
     @Override
     public void capture(KParams captureParams) throws CameraAccessException {
-        KLog.i("capture =>" + captureParams);
+        KLog.i(TAG,"capture =>" + captureParams);
         CaptureRequest.Builder requestBuilder = captureParams.get(KParams.Key.REQUEST_BUILDER);
         CameraCaptureSession.CaptureCallback captureCallback = captureParams.get(KParams.Key.CAPTURE_CALLBACK);
         mCameraSession.capture(requestBuilder.build(), captureCallback, WorkerHandlerManager.getHandler(WorkerHandlerManager.Tag.T_TYPE_CAMERA_SCHEDULER));

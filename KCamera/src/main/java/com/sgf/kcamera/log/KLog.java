@@ -21,51 +21,23 @@ public class KLog {
         KLog.debug = debug;
     }
 
-    public static void d(String message) {
+    public static void d(String tag, String message) {
         if (!debug) {
             return;
         }
-        try {
-            String className = new Exception().getStackTrace()[1].getFileName();
-            className = className.substring(0, className.indexOf("."));
-            Log.d(printTagFormat(className),message);
-        } catch (Exception e) {
-            e.printStackTrace();
-            Log.d(printTagFormat(null),message);
-        }
+        Log.d(printTagFormat(tag), message);
     }
 
-    public static void e(String message) {
-        try {
-            String className = new Exception().getStackTrace()[1].getFileName();
-            className = className.substring(0, className.indexOf("."));
-            Log.e(printTagFormat(className),message);
-        }catch (Exception e) {
-            e.printStackTrace();
-            Log.e(printTagFormat(null),message);
-        }
+    public static void e(String tag, String message) {
+        Log.e(printTagFormat(tag),message);
     }
 
-    public static void i(String message) {
-        try {
-            String className = new Exception().getStackTrace()[1].getFileName();
-            className = className.substring(0, className.indexOf("."));
-            Log.i(printTagFormat(className),message);
-        } catch (Exception e) {
-            e.printStackTrace();
-            Log.i(printTagFormat(null),message);
-        }
+    public static void i(String tag, String message) {
+        Log.i(printTagFormat(tag),message);
     }
 
-    public static void w(String message) {
-        try {
-            String className = new Exception().getStackTrace()[1].getFileName();
-            className = className.substring(0, className.indexOf("."));
-            Log.w(printTagFormat(className),message);
-        } catch (Exception e) {
-            e.printStackTrace();
-            Log.w(printTagFormat(null),message);
-        }
+    public static void w(String tag, String message) {
+        Log.w(printTagFormat(tag),message);
     }
 
     private static String printTagFormat(String className) {
@@ -74,6 +46,16 @@ public class KLog {
             try {
                 Thread thread = Thread.currentThread();
                 resultLog = className.concat("[").concat(thread.getName()).concat("]");
+                if (!TextUtils.isEmpty(sTag)) {
+                    resultLog = resultLog.concat("[").concat(sTag).concat("]");
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        } else {
+            try {
+                Thread thread = Thread.currentThread();
+                resultLog = "".concat("[").concat(thread.getName()).concat("]");
                 if (!TextUtils.isEmpty(sTag)) {
                     resultLog = resultLog.concat("[").concat(sTag).concat("]");
                 }

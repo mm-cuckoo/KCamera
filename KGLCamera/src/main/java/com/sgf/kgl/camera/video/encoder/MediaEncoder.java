@@ -11,6 +11,8 @@ import java.nio.ByteBuffer;
 
 public abstract class MediaEncoder implements Runnable {
 
+	private static final String TAG = "MediaEncoder";
+
 	protected static final int TIMEOUT_USEC = 10000;	// 10[msec]
 	protected static final int MSG_FRAME_AVAILABLE = 1;
 	protected static final int MSG_STOP_RECORDING = 9;
@@ -142,7 +144,7 @@ public abstract class MediaEncoder implements Runnable {
 	        	}
         	}
         } // end of while
-		KLog.i( "Encoder thread exiting");
+		KLog.i(TAG, "Encoder thread exiting");
         synchronized (mSync) {
         	mRequestStop = true;
             mIsCapturing = false;
@@ -157,7 +159,7 @@ public abstract class MediaEncoder implements Runnable {
    /*package*/ abstract void prepare() throws IOException;
 
 	/*package*/ void startRecording() {
-		KLog.i( "startRecording");
+		KLog.i(TAG, "startRecording");
 		synchronized (mSync) {
 			mIsCapturing = true;
 			mRequestStop = false;
@@ -169,7 +171,7 @@ public abstract class MediaEncoder implements Runnable {
     * the method to request stop encoding
     */
 	/*package*/ void stopRecording() {
-	   KLog.i( "stopRecording");
+	   KLog.i( TAG,"stopRecording");
 		synchronized (mSync) {
 			if (!mIsCapturing || mRequestStop) {
 				return;
@@ -187,11 +189,11 @@ public abstract class MediaEncoder implements Runnable {
      * Release all releated objects
      */
     protected void release() {
-		KLog.i( "release:");
+		KLog.i(TAG, "release:");
 		try {
 			mListener.onStopped(this);
 		} catch (final Exception e) {
-			KLog.e( "failed onStopped" + e.getMessage());
+			KLog.e( TAG,"failed onStopped" + e.getMessage());
 		}
 		mIsCapturing = false;
         if (mMediaCodec != null) {
@@ -200,7 +202,7 @@ public abstract class MediaEncoder implements Runnable {
 	            mMediaCodec.release();
 	            mMediaCodec = null;
 			} catch (final Exception e) {
-				KLog.e( "failed releasing MediaCodec" + e.getMessage());
+				KLog.e(TAG, "failed releasing MediaCodec" + e.getMessage());
 			}
         }
         if (mMuxerStarted) {
@@ -209,7 +211,7 @@ public abstract class MediaEncoder implements Runnable {
        			try {
            			muxer.stop();
     			} catch (final Exception e) {
-					KLog.i("failed stopping muxer" + e.getMessage());
+					KLog.i(TAG,"failed stopping muxer" + e.getMessage());
     			}
        		}
         }
@@ -217,7 +219,7 @@ public abstract class MediaEncoder implements Runnable {
     }
 
     protected void signalEndOfInputStream() {
-		KLog.i(  "sending EOS to encoder");
+		KLog.i( TAG, "sending EOS to encoder");
         // signalEndOfInputStream is only avairable for video encoding with surface
         // and equivalent sending a empty buffer with BUFFER_FLAG_END_OF_STREAM flag.
 //		mMediaCodec.signalEndOfInputStream();	// API >= 18
@@ -245,7 +247,7 @@ public abstract class MediaEncoder implements Runnable {
 	            if (length <= 0) {
 	            	// send EOS
 	            	mIsEOS = true;
-					KLog.i(  "send BUFFER_FLAG_END_OF_STREAM");
+					KLog.i( TAG, "send BUFFER_FLAG_END_OF_STREAM");
 	            	mMediaCodec.queueInputBuffer(inputBufferIndex, 0, 0,
 	            		presentationTimeUs, MediaCodec.BUFFER_FLAG_END_OF_STREAM);
 		            break;
@@ -272,7 +274,7 @@ public abstract class MediaEncoder implements Runnable {
         final MediaMuxerWrapper muxer = mWeakMuxer.get();
         if (muxer == null) {
 //        	throw new NullPointerException("muxer is unexpectedly null");
-			KLog.w( "muxer is unexpectedly null");
+			KLog.w(TAG, "muxer is unexpectedly null");
         	return;
         }
 LOOP:	while (mIsCapturing) {
@@ -285,11 +287,11 @@ LOOP:	while (mIsCapturing) {
                 		break LOOP;		// out of while
                 }
             } else if (encoderStatus == MediaCodec.INFO_OUTPUT_BUFFERS_CHANGED) {
-				KLog.i( "INFO_OUTPUT_BUFFERS_CHANGED");
+				KLog.i(TAG, "INFO_OUTPUT_BUFFERS_CHANGED");
                 // this shoud not come when encoding
                 encoderOutputBuffers = mMediaCodec.getOutputBuffers();
             } else if (encoderStatus == MediaCodec.INFO_OUTPUT_FORMAT_CHANGED) {
-				KLog.i(  "INFO_OUTPUT_FORMAT_CHANGED");
+				KLog.i( TAG, "INFO_OUTPUT_FORMAT_CHANGED");
             	// this status indicate the output format of codec is changed
                 // this should come only once before actual encoded data
             	// but this status never come on Android4.3 or less
@@ -315,7 +317,7 @@ LOOP:	while (mIsCapturing) {
                	}
             } else if (encoderStatus < 0) {
             	// unexpected status
-				KLog.w(  "drain:unexpected result from encoder#dequeueOutputBuffer: " + encoderStatus);
+				KLog.w(TAG,  "drain:unexpected result from encoder#dequeueOutputBuffer: " + encoderStatus);
             } else {
                 final ByteBuffer encodedData = encoderOutputBuffers[encoderStatus];
                 if (encodedData == null) {
@@ -327,7 +329,7 @@ LOOP:	while (mIsCapturing) {
                 	// but MediaCodec#getOutputFormat can not call here(because INFO_OUTPUT_FORMAT_CHANGED don't come yet)
                 	// therefor we should expand and prepare output format from buffer data.
                 	// This sample is for API>=18(>=Android 4.3), just ignore this flag here
-					KLog.i( "drain:BUFFER_FLAG_CODEC_CONFIG");
+					KLog.i( TAG,"drain:BUFFER_FLAG_CODEC_CONFIG");
 					mBufferInfo.size = 0;
                 }
 

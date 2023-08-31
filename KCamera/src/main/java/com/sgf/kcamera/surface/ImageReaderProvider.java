@@ -17,6 +17,8 @@ import java.nio.ByteBuffer;
  */
 public abstract class ImageReaderProvider extends SurfaceProvider implements ImageReader.OnImageAvailableListener {
 
+    private static final String TAG = "ImageReaderProvider";
+
     private ImageReader mImageReader;
 
     public ImageReaderProvider(TYPE type) {
@@ -39,7 +41,7 @@ public abstract class ImageReaderProvider extends SurfaceProvider implements Ima
                 mImageReader = null;
             }
         } catch (Exception e) {
-            KLog.e("release exception");
+            KLog.e(TAG,"release exception");
             e.printStackTrace();
         }
     }

@@ -26,6 +26,7 @@ import javax.microedition.khronos.opengles.GL10;
  */
 public class GLView extends GLSurfaceView {
 
+	private static final String TAG = "GLView";
 	private final CameraSurfaceRenderer mRenderer;
 	private int mVideoWidth, mVideoHeight;
 	private int mDisplayRotation;
@@ -52,7 +53,7 @@ public class GLView extends GLSurfaceView {
 		setEGLContextClientVersion(2);	// GLES 2.0, API >= 8
 		setRenderer(mRenderer);
 		setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);
-		KLog.i("GLView:mDisplayRotation:" + mDisplayRotation);
+		KLog.i(TAG,"GLView:mDisplayRotation:" + mDisplayRotation);
 		mRenderer.requestRender();
 /*		// the frequency of refreshing of camera preview is at most 15 fps
 		// and RENDERMODE_WHEN_DIRTY is better to reduce power consumption
@@ -104,7 +105,7 @@ public class GLView extends GLSurfaceView {
 	}
 
 	private SurfaceTexture getSurfaceTexture() {
-		KLog.i( "getSurfaceTexture:");
+		KLog.i( TAG,"getSurfaceTexture:");
 		return mRenderer != null ? mRenderer.mSTexture : null;
 	}
 
@@ -114,14 +115,14 @@ public class GLView extends GLSurfaceView {
 
 	@Override
 	public void surfaceDestroyed(final SurfaceHolder holder) {
-		KLog.i( "surfaceDestroyed:");
+		KLog.i(TAG, "surfaceDestroyed:");
 
 		mRenderer.onSurfaceDestroyed();
 		super.surfaceDestroyed(holder);
 	}
 
 	public void setVideoEncoder(final MediaVideoEncoder encoder) {
-		KLog.i("setVideoEncoder:tex_id=" + mRenderer.hTex + ",encoder=" + encoder);
+		KLog.i(TAG,"setVideoEncoder:tex_id=" + mRenderer.hTex + ",encoder=" + encoder);
 		queueEvent(new Runnable() {
 			@Override
 			public void run() {
@@ -158,7 +159,7 @@ public class GLView extends GLSurfaceView {
 		private final AtomicBoolean isRunning = new AtomicBoolean(true);
 
 		public CameraSurfaceRenderer(final GLView parent, final int rotation) {
-			KLog.i("CameraSurfaceRenderer:rotation:" + rotation);
+			KLog.i(TAG,"CameraSurfaceRenderer:rotation:" + rotation);
 			this.mRotation = rotation;
 			mWeakParent = new WeakReference<>(parent);
 			Matrix.setIdentityM(mMvpMatrix, 0);
@@ -195,7 +196,7 @@ public class GLView extends GLSurfaceView {
 
 		@Override
 		public void onSurfaceCreated(final GL10 unused, final EGLConfig config) {
-			KLog.i("====onSurfaceCreated-=======");
+			KLog.i(TAG,"====onSurfaceCreated-=======");
 
 			// This renderer required OES_EGL_image_external extension
 			final String extensions = GLES20.glGetString(GLES20.GL_EXTENSIONS);	// API >= 8
@@ -227,7 +228,7 @@ public class GLView extends GLSurfaceView {
 
 		@Override
 		public void onSurfaceChanged(final GL10 unused, final int width, final int height) {
-			KLog.i("onSurfaceChanged:width" + width + "  height:" + height);
+			KLog.i(TAG,"onSurfaceChanged:width" + width + "  height:" + height);
 			GLES20.glViewport(0, 0, width , height);
 			if (mTextureListener != null) {
 				mTextureListener.onSurfaceChanged(mSTexture, width, height);
@@ -238,7 +239,7 @@ public class GLView extends GLSurfaceView {
 		 * when GLSurface context is soon destroyed
 		 */
 		public void onSurfaceDestroyed() {
-			KLog.i("onSurfaceDestroyed:");
+			KLog.i(TAG,"onSurfaceDestroyed:");
 			if (mDrawer != null) {
 				mDrawer.release();
 				mDrawer = null;

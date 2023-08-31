@@ -15,6 +15,7 @@ import io.reactivex.functions.Function;
 
 public class CaptureBusinessImpl implements CaptureBusiness {
 
+    private static final String TAG = "CaptureBusinessImpl";
 
     private final CameraStateMachine mStateMachine;
 
@@ -25,7 +26,7 @@ public class CaptureBusinessImpl implements CaptureBusiness {
     }
 
     public Observable<KParams> openCamera(KParams openParams) {
-        KLog.d("open camera request ===>params:" + openParams);
+        KLog.d(TAG, "open camera request ===>params:" + openParams);
         return mStateMachine.openCamera(openParams)
                 .flatMap((Function<KParams, ObservableSource<KParams>>) openResultParams -> {
             return mStateMachine.startPreview(openResultParams);

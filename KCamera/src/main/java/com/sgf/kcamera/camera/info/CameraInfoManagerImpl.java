@@ -4,12 +4,13 @@ import android.graphics.Rect;
 import android.hardware.camera2.CameraCharacteristics;
 import android.util.Range;
 import android.util.Size;
-import android.util.SizeF;
 
 import com.sgf.kcamera.CameraID;
 import com.sgf.kcamera.log.KLog;
 
 public class CameraInfoManagerImpl implements CameraInfoManager {
+
+    private static final String TAG = "CameraInfoManagerImpl";
 
     public static final CameraInfoManager CAMERA_INFO_MANAGER = new CameraInfoManagerImpl();
     private static final int MAX_ZOOM_VALUE = 100;
@@ -26,7 +27,7 @@ public class CameraInfoManagerImpl implements CameraInfoManager {
     @Override
     public boolean isAutoFocusSupported() {
         Float minFocusDist = getCharacteristics().get(CameraCharacteristics.LENS_INFO_MINIMUM_FOCUS_DISTANCE);
-        KLog.d("isAutoFocusSupported: minFocusDist:" + minFocusDist);
+        KLog.d(TAG,"isAutoFocusSupported: minFocusDist:" + minFocusDist);
         return minFocusDist != null && minFocusDist > 0;
     }
 
@@ -46,7 +47,7 @@ public class CameraInfoManagerImpl implements CameraInfoManager {
     @Override
     public boolean isLegacyLocked() {
         Integer level = getCharacteristics().get(CameraCharacteristics.INFO_SUPPORTED_HARDWARE_LEVEL);
-        KLog.d("isLegacyLocked: INFO_SUPPORTED_HARDWARE_LEVEL:" + level);
+        KLog.d(TAG,"isLegacyLocked: INFO_SUPPORTED_HARDWARE_LEVEL:" + level);
         return level != null && level == CameraCharacteristics.INFO_SUPPORTED_HARDWARE_LEVEL_LEGACY;
     }
 
@@ -73,7 +74,7 @@ public class CameraInfoManagerImpl implements CameraInfoManager {
                 return targetMode;
             }
         }
-        KLog.d("not support af mode:" + targetMode + " use mode:" + allAFMode[0]);
+        KLog.d(TAG,"not support af mode:" + targetMode + " use mode:" + allAFMode[0]);
         return allAFMode[0];
     }
 
@@ -85,7 +86,7 @@ public class CameraInfoManagerImpl implements CameraInfoManager {
                 return targetMode;
             }
         }
-        KLog.d("not support anti banding mode:" + targetMode
+        KLog.d(TAG,"not support anti banding mode:" + targetMode
                 + " use mode:" + allABMode[0]);
         return allABMode[0];
     }
@@ -207,6 +208,11 @@ public class CameraInfoManagerImpl implements CameraInfoManager {
     @Override
     public Rect getActiveArraySize(CameraID cameraID) {
         return getCharacteristicsForCameraId(cameraID).get(CameraCharacteristics.SENSOR_INFO_ACTIVE_ARRAY_SIZE);
+    }
+
+    @Override
+    public Integer getLensFacing() {
+        return getCharacteristics().get(CameraCharacteristics.LENS_FACING);
     }
 
     @Override

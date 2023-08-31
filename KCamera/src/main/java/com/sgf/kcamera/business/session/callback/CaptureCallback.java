@@ -16,6 +16,7 @@ import com.sgf.kcamera.log.KLog;
 import io.reactivex.ObservableEmitter;
 
 public class CaptureCallback extends CameraCaptureSession.CaptureCallback {
+    private static final String TAG = "CaptureCallback";
 
     private CaptureRequest.Builder mCaptureBuilder;
     private final CameraSession mCameraSession;
@@ -38,7 +39,7 @@ public class CaptureCallback extends CameraCaptureSession.CaptureCallback {
     public void onCaptureStarted(@NonNull CameraCaptureSession session,
                                  @NonNull CaptureRequest request, long timestamp, long frameNumber) {
         super.onCaptureStarted(session, request, timestamp, frameNumber);
-        KLog.i("onCaptureStarted====>");
+        KLog.i(TAG,"onCaptureStarted====>");
         KParams captureParams = new KParams();
         captureParams.put(KParams.Key.CAPTURE_STATE, KParams.Value.CAPTURE_STATE.CAPTURE_START);
         mEmitter.onNext(captureParams);
@@ -49,7 +50,7 @@ public class CaptureCallback extends CameraCaptureSession.CaptureCallback {
     public void onCaptureCompleted(@NonNull CameraCaptureSession session, @NonNull
             CaptureRequest request, @NonNull TotalCaptureResult result) {
         super.onCaptureCompleted(session, request, result);
-        KLog.i("onCaptureCompleted====>");
+        KLog.i(TAG,"onCaptureCompleted====>");
         KParams params = new KParams();
         params.put(KParams.Key.CAPTURE_STATE, KParams.Value.CAPTURE_STATE.CAPTURE_COMPLETED);
         mEmitter.onNext(params);
@@ -58,14 +59,14 @@ public class CaptureCallback extends CameraCaptureSession.CaptureCallback {
     @Override
     public void onCaptureFailed(@NonNull CameraCaptureSession session, @NonNull CaptureRequest request, @NonNull CaptureFailure failure) {
         super.onCaptureFailed(session, request, failure);
-        KLog.i("onCaptureFailed====>");
+        KLog.i(TAG,"onCaptureFailed====>");
         KParams params = new KParams();
         params.put(KParams.Key.CAPTURE_STATE, KParams.Value.CAPTURE_STATE.CAPTURE_FAIL);
         mEmitter.onNext(params);
     }
 
     private void sendStillPictureRequest() {
-        KLog.d("sendStillPictureRequest===>"  + mCaptureBuilder.get(CaptureRequest.JPEG_ORIENTATION));
+        KLog.d(TAG,"sendStillPictureRequest===>"  + mCaptureBuilder.get(CaptureRequest.JPEG_ORIENTATION));
         KParams params = new KParams();
         params.put(KParams.Key.REQUEST_BUILDER, mCaptureBuilder);
         params.put(KParams.Key.CAPTURE_CALLBACK, this);

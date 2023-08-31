@@ -5,6 +5,10 @@ import com.sgf.kcamera.log.KLog
 
 class ImageTransform {
 
+    companion object {
+        private const val TAG = "ImageTransform"
+    }
+
     private var yRawSrcBytes : ByteArray? = null
     private var uRawSrcBytes : ByteArray? = null
     private var vRawSrcBytes : ByteArray? = null
@@ -28,7 +32,7 @@ class ImageTransform {
         // size是宽乘高的1.5倍 可以通过ImageFormat.getBitsPerPixel(ImageFormat.YUV_420_888)得到
         val i420Size = w * h * 3 / 2
         if (i420Size != putNv21.size) {
-            KLog.e("yuv image size != yuv buffer size, image:w : $w, h :$h, size:$i420Size , yuv buffer size:${putNv21.size}")
+            KLog.e(TAG,"yuv image size != yuv buffer size, image:w : $w, h :$h, size:$i420Size , yuv buffer size:${putNv21.size}")
             nv21 = ByteArray(i420Size)
         }
         val planes: Array<Image.Plane> = image.planes

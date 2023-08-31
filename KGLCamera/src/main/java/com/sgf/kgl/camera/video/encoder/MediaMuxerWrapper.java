@@ -15,6 +15,7 @@ import java.util.GregorianCalendar;
 import java.util.Locale;
 
 public class MediaMuxerWrapper {
+	private static final String TAG = "MediaMuxerWrapper";
 	private static final String DIR_NAME = "AVRecSample";
     private static final SimpleDateFormat mDateTimeFormat = new SimpleDateFormat("yyyy-MM-dd-HH-mm-ss", Locale.US);
 
@@ -29,7 +30,7 @@ public class MediaMuxerWrapper {
 	 * @throws IOException
 	 */
 	public MediaMuxerWrapper(String videoPath) throws IOException {
-		KLog.i( "MediaMuxerWrapper: videoPath :" + videoPath);
+		KLog.i(TAG, "MediaMuxerWrapper: videoPath :" + videoPath);
 		mMediaMuxer = new MediaMuxer(videoPath, MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4);
 		mEncoderCount = mStatredCount = 0;
 		mIsStarted = false;
@@ -91,13 +92,13 @@ public class MediaMuxerWrapper {
 	 * @return true when muxer is ready to write
 	 */
 	/*package*/ synchronized boolean start() {
-		KLog.d(   "start:");
+		KLog.d( TAG,  "start:");
 		mStatredCount++;
 		if ((mEncoderCount > 0) && (mStatredCount == mEncoderCount)) {
 			mMediaMuxer.start();
 			mIsStarted = true;
 			notifyAll();
-			KLog.d( "MediaMuxer started:");
+			KLog.d( TAG,"MediaMuxer started:");
 		}
 		return mIsStarted;
 	}
@@ -106,13 +107,13 @@ public class MediaMuxerWrapper {
 	 * request stop recording from encoder when encoder received EOS
 	*/
 	/*package*/ synchronized void stop() {
-		KLog.i( "stop:mStatredCount=" + mStatredCount);
+		KLog.i( TAG,"stop:mStatredCount=" + mStatredCount);
 		mStatredCount--;
 		if ((mEncoderCount > 0) && (mStatredCount <= 0)) {
 			mMediaMuxer.stop();
 			mMediaMuxer.release();
 			mIsStarted = false;
-			KLog.d( "MediaMuxer stopped:");
+			KLog.d( TAG,"MediaMuxer stopped:");
 		}
 	}
 
@@ -125,7 +126,7 @@ public class MediaMuxerWrapper {
 		if (mIsStarted)
 			throw new IllegalStateException("muxer already started");
 		final int trackIx = mMediaMuxer.addTrack(format);
-		KLog.i( "addTrack:trackNum=" + mEncoderCount + ",trackIx=" + trackIx + ",format=" + format);
+		KLog.i( TAG,"addTrack:trackNum=" + mEncoderCount + ",trackIx=" + trackIx + ",format=" + format);
 		return trackIx;
 	}
 
@@ -150,7 +151,7 @@ public class MediaMuxerWrapper {
      */
     public static final File getCaptureFile(final String type, final String ext) {
 		final File dir = new File(Environment.getExternalStoragePublicDirectory(type), DIR_NAME);
-		KLog.d( "path=" + dir.toString());
+		KLog.d(TAG, "path=" + dir.toString());
 		dir.mkdirs();
         if (dir.canWrite()) {
         	return new File(dir, getDateTimeString() + ext);

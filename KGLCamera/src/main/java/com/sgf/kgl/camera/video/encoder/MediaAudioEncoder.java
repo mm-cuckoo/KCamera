@@ -15,6 +15,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 
 public class MediaAudioEncoder extends MediaEncoder {
+	private static final String TAG = "MediaAudioEncoder";
 
 	private static final String MIME_TYPE = "audio/mp4a-latm";
     private static final int SAMPLE_RATE = 44100;	// 44.1[KHz] is only setting guaranteed to be available on all devices.
@@ -30,16 +31,16 @@ public class MediaAudioEncoder extends MediaEncoder {
 
 	@Override
 	protected void prepare() throws IOException {
-		KLog.i( "prepare:");
+		KLog.i( TAG,"prepare:");
         mTrackIndex = -1;
         mMuxerStarted = mIsEOS = false;
         // prepare MediaCodec for AAC encoding of audio data from inernal mic.
         final MediaCodecInfo audioCodecInfo = selectAudioCodec(MIME_TYPE);
         if (audioCodecInfo == null) {
-			KLog.e( "Unable to find an appropriate codec for " + MIME_TYPE);
+			KLog.e(TAG, "Unable to find an appropriate codec for " + MIME_TYPE);
             return;
         }
-		KLog.i( "selected codec: " + audioCodecInfo.getName());
+		KLog.i(TAG, "selected codec: " + audioCodecInfo.getName());
 
         final MediaFormat audioFormat = MediaFormat.createAudioFormat(MIME_TYPE, SAMPLE_RATE, 1);
 		audioFormat.setInteger(MediaFormat.KEY_AAC_PROFILE, MediaCodecInfo.CodecProfileLevel.AACObjectLC);
@@ -48,16 +49,16 @@ public class MediaAudioEncoder extends MediaEncoder {
 		audioFormat.setInteger(MediaFormat.KEY_CHANNEL_COUNT, 1);
 //		audioFormat.setLong(MediaFormat.KEY_MAX_INPUT_SIZE, inputFile.length());
 //      audioFormat.setLong(MediaFormat.KEY_DURATION, (long)durationInMs );
-		KLog.i( "format: " + audioFormat);
+		KLog.i(TAG, "format: " + audioFormat);
         mMediaCodec = MediaCodec.createEncoderByType(MIME_TYPE);
         mMediaCodec.configure(audioFormat, null, null, MediaCodec.CONFIGURE_FLAG_ENCODE);
         mMediaCodec.start();
-		KLog.i( "prepare finishing");
+		KLog.i( TAG,"prepare finishing");
         if (mListener != null) {
         	try {
         		mListener.onPrepared(this);
         	} catch (final Exception e) {
-				KLog.e( "prepare:" + e.getMessage());
+				KLog.e(TAG, "prepare:" + e.getMessage());
         	}
         }
 	}
@@ -120,7 +121,7 @@ public class MediaAudioEncoder extends MediaEncoder {
 				if (audioRecord != null) {
 		            try {
 						if (mIsCapturing) {
-							KLog.i( "AudioThread:start audio recording");
+							KLog.i(TAG, "AudioThread:start audio recording");
 							final ByteBuffer buf = ByteBuffer.allocateDirect(SAMPLES_PER_FRAME);
 			                int readBytes;
 			                audioRecord.startRecording();
@@ -147,10 +148,10 @@ public class MediaAudioEncoder extends MediaEncoder {
 		            	audioRecord.release();
 		            }
 				} else {
-					KLog.e( "failed to initialize AudioRecord");
+					KLog.e( TAG,"failed to initialize AudioRecord");
 				}
     		} catch (final Exception e) {
-				KLog.e( "AudioThread#run" + e.getMessage());
+				KLog.e(TAG, "AudioThread#run" + e.getMessage());
     		}
 			if (cnt == 0) {
 				final ByteBuffer buf = ByteBuffer.allocateDirect(SAMPLES_PER_FRAME);
@@ -171,7 +172,7 @@ public class MediaAudioEncoder extends MediaEncoder {
 					}
 				}
 			}
-			KLog.i( "AudioThread:finished");
+			KLog.i(TAG, "AudioThread:finished");
     	}
     }
 
@@ -181,7 +182,7 @@ public class MediaAudioEncoder extends MediaEncoder {
      * @return
      */
     private static final MediaCodecInfo selectAudioCodec(final String mimeType) {
-		KLog.i(  "selectAudioCodec:");
+		KLog.i(TAG,  "selectAudioCodec:");
 
     	MediaCodecInfo result = null;
     	// get the list of available codecs
@@ -193,7 +194,7 @@ LOOP:	for (int i = 0; i < numCodecs; i++) {
             }
             final String[] types = codecInfo.getSupportedTypes();
             for (int j = 0; j < types.length; j++) {
-//				KLog.e( "supportedType:" + codecInfo.getName() + ",MIME=" + types[j]);
+//				KLog.e(TAG, "supportedType:" + codecInfo.getName() + ",MIME=" + types[j]);
                 if (types[j].equalsIgnoreCase(mimeType)) {
                 	if (result == null) {
                 		result = codecInfo;

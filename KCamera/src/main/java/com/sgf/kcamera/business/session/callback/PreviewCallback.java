@@ -5,11 +5,9 @@ import android.hardware.camera2.CameraCaptureSession;
 import android.hardware.camera2.CaptureRequest;
 import android.hardware.camera2.CaptureResult;
 import android.hardware.camera2.TotalCaptureResult;
-import android.util.Range;
 
 import androidx.annotation.NonNull;
 
-import com.sgf.kcamera.BuildConfig;
 import com.sgf.kcamera.KParams;
 import com.sgf.kcamera.camera.session.CameraSession;
 import com.sgf.kcamera.log.KLog;
@@ -17,6 +15,7 @@ import com.sgf.kcamera.log.KLog;
 import io.reactivex.ObservableEmitter;
 
 public class PreviewCallback extends CameraCaptureSession.CaptureCallback {
+    private static final String TAG = "PreviewCallback";
 
     private static final int STATE_PREVIEW                      = 1;
     private static final int STATE_CAPTURE                      = 2;
@@ -45,7 +44,7 @@ public class PreviewCallback extends CameraCaptureSession.CaptureCallback {
     }
 
     private void stateChange(int type) {
-        KLog.d("setType  mState:" + type);
+        KLog.d(TAG,"setType  mState:" + type);
         this.mState = type;
 
     }
@@ -70,7 +69,7 @@ public class PreviewCallback extends CameraCaptureSession.CaptureCallback {
             KParams previewParams = new KParams();
             previewParams.put(KParams.Key.PREVIEW_FIRST_FRAME, KParams.Value.OK);
             mEmitter.onNext(previewParams);
-            KLog.d("preview first frame call back");
+            KLog.d(TAG,"preview first frame call back");
         }
 
         updateAFState(result);
@@ -86,7 +85,7 @@ public class PreviewCallback extends CameraCaptureSession.CaptureCallback {
             }
             case STATE_WAITING_LOCK: {
                 Integer afState = result.get(CaptureResult.CONTROL_AF_STATE);
-                KLog.d("STATE_WAITING_LOCK===>afState:" + afState);
+                KLog.d(TAG,"STATE_WAITING_LOCK===>afState:" + afState);
 
                 if (afState == null) {
                     runCaptureAction();
@@ -94,7 +93,7 @@ public class PreviewCallback extends CameraCaptureSession.CaptureCallback {
                         CaptureResult.CONTROL_AF_STATE_NOT_FOCUSED_LOCKED == afState) {
                     // CONTROL_AE_STATE can be null on some devices
                     Integer aeState = result.get(CaptureResult.CONTROL_AE_STATE);
-                    KLog.d("STATE_WAITING_LOCK===>aeState:" + aeState);
+                    KLog.d(TAG,"STATE_WAITING_LOCK===>aeState:" + aeState);
                     if (aeState == null || aeState == CaptureResult.CONTROL_AE_STATE_CONVERGED) {
                         stateChange(STATE_CAPTURE);
                         runCaptureAction();
@@ -107,7 +106,7 @@ public class PreviewCallback extends CameraCaptureSession.CaptureCallback {
             case STATE_WAITING_PRE_CAPTURE: {
                 // CONTROL_AE_STATE can be null on some devices
                 Integer aeState = result.get(CaptureResult.CONTROL_AE_STATE);
-                KLog.d("STATE_WAITING_LOCK===>aeState:" + aeState);
+                KLog.d(TAG,"STATE_WAITING_LOCK===>aeState:" + aeState);
                 if (aeState == null ||
                         aeState == CaptureResult.CONTROL_AE_STATE_PRECAPTURE ||
                         aeState == CaptureRequest.CONTROL_AE_STATE_FLASH_REQUIRED) {
@@ -118,7 +117,7 @@ public class PreviewCallback extends CameraCaptureSession.CaptureCallback {
             case STATE_WAITING_NON_PRE_CAPTURE: {
                 // CONTROL_AE_STATE can be null on some devices
                 Integer aeState = result.get(CaptureResult.CONTROL_AE_STATE);
-                KLog.d("STATE_WAITING_LOCK===>aeState:" + aeState);
+                KLog.d(TAG,"STATE_WAITING_LOCK===>aeState:" + aeState);
                 if (aeState == null || aeState != CaptureResult.CONTROL_AE_STATE_PRECAPTURE) {
                     stateChange(STATE_CAPTURE);
                     runCaptureAction();
@@ -159,7 +158,7 @@ public class PreviewCallback extends CameraCaptureSession.CaptureCallback {
     }
 
     private void triggerAFCaptureSequence() {
-        KLog.d("triggerAFCaptureSequence===>");
+        KLog.d(TAG,"triggerAFCaptureSequence===>");
         mPreviewBuilder.set(CaptureRequest.CONTROL_AF_TRIGGER, CaptureRequest.CONTROL_AF_TRIGGER_START);
         stateChange(STATE_WAITING_LOCK);
         KParams captureParams = new KParams();
@@ -173,7 +172,7 @@ public class PreviewCallback extends CameraCaptureSession.CaptureCallback {
     }
 
     private void triggerAECaptureSequence() {
-        KLog.d("triggerAECaptureSequence===>");
+        KLog.d(TAG,"triggerAECaptureSequence===>");
         mPreviewBuilder.set(CaptureRequest.CONTROL_AE_PRECAPTURE_TRIGGER, CaptureRequest.CONTROL_AE_PRECAPTURE_TRIGGER_START);
         stateChange(STATE_WAITING_PRE_CAPTURE);
         KParams aeParams = new KParams();
@@ -187,7 +186,7 @@ public class PreviewCallback extends CameraCaptureSession.CaptureCallback {
     }
 
     public void resetPreviewState() {
-        KLog.i("resetTriggerState===>");
+        KLog.i(TAG,"resetTriggerState===>");
         stateChange(STATE_PREVIEW);
         mPreviewBuilder.set(CaptureRequest.CONTROL_AF_TRIGGER, CaptureRequest.CONTROL_AF_TRIGGER_IDLE);
         mPreviewBuilder.set(CaptureRequest.CONTROL_AE_PRECAPTURE_TRIGGER, CaptureRequest.CONTROL_AE_PRECAPTURE_TRIGGER_IDLE);

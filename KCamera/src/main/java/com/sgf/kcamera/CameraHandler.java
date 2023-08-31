@@ -5,6 +5,7 @@ import android.content.Context;
 import android.util.Pair;
 import android.util.Range;
 import android.util.Size;
+import android.view.WindowManager;
 
 import com.sgf.kcamera.config.ConfigWrapper;
 import com.sgf.kcamera.business.capture.CaptureBusiness;
@@ -32,24 +33,28 @@ import io.reactivex.functions.Predicate;
  */
 public class CameraHandler {
 
+    private static final String TAG = "CameraHandler";
+
     private final static Object lockObj = new Object();
     private final CaptureBusiness mCameraBusiness;
     private final CameraInfoManager mCameraInfoManager;
     private final ConfigWrapper mConfig;
     private final SurfaceManager mSurfaceManager;
+    private final Long mOpenCameraSign;
+    private final int mDisplayRotation;
     private CameraStateListener mCameraStateListener;
     private CameraID mCameraId;
-    private final Long mOpenCameraSign;
     private boolean isOpening = false;
 
     public CameraHandler(Context context, ConfigWrapper configWrapper) {
         CameraSessionManager sessionManager = CameraSessionManagerImpl.getInstance(context);
-
-        mCameraBusiness = new CaptureBusinessImpl(sessionManager);
-        mConfig = configWrapper;
-        mCameraInfoManager = CameraInfoManagerImpl.CAMERA_INFO_MANAGER;
-        mSurfaceManager = new SurfaceManager();
-        mOpenCameraSign = System.currentTimeMillis();
+        WindowManager windowManager = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
+        this.mCameraBusiness = new CaptureBusinessImpl(sessionManager);
+        this.mConfig = configWrapper;
+        this.mCameraInfoManager = CameraInfoManagerImpl.CAMERA_INFO_MANAGER;
+        this.mSurfaceManager = new SurfaceManager();
+        this.mOpenCameraSign = System.currentTimeMillis();
+        this.mDisplayRotation = windowManager.getDefaultDisplay().getRotation() * 90;
     }
 
     public final CameraID getCameraId() {
@@ -59,7 +64,10 @@ public class CameraHandler {
     public final synchronized void onOpenCamera(@NonNull PreviewRequest request, final CameraStateListener listener) {
         // 如果当前camera 操作实例已经在打开camera 中，不执行打开操作，如果是切换camera， 也需要完成一次打开之后在进行切换
         if (isOpening) {
-            KLog.e("camera opening .......");
+            if (listener != null) {
+                listener.onCameraError(new RuntimeException("camera is opening ..... id:" + mCameraId));
+            }
+            KLog.e(TAG,"camera opening .......");
             return;
         }
 
@@ -67,7 +75,7 @@ public class CameraHandler {
         mSurfaceManager.release();
         mCameraStateListener = listener;
         mCameraId = request.getCameraId();
-        final KParams openParams = new KParams();
+        final KParams openParams = createParams();
         mSurfaceManager.setPreviewSurfaceProviderList(request.getPreviewSurfaceProviders());
         openParams.put(KParams.Key.SURFACE_MANAGER, mSurfaceManager);
         openParams.put(KParams.Key.CAMERA_ID, mCameraId.ID);
@@ -95,8 +103,8 @@ public class CameraHandler {
 
         openParams.put(KParams.Key.ZOOM_VALUE, request.getZoom());
 
-        KLog.i("open camera , camera id:" + mCameraId.ID + "  open sign:" + mOpenCameraSign);
-        KLog.d("max zoom:" + mCameraInfoManager.getMaxZoom()  + " zoom :" + request.getZoom() + " zoom area:" + mCameraInfoManager.getActiveArraySize() );
+        KLog.i(TAG,"open camera , camera id:" + mCameraId.ID + "  open sign:" + mOpenCameraSign);
+        KLog.d(TAG,"max zoom:" + mCameraInfoManager.getMaxZoom()  + " zoom :" + request.getZoom() + " zoom area:" + mCameraInfoManager.getActiveArraySize() );
 
         long openTime = System.currentTimeMillis();
 
@@ -105,17 +113,17 @@ public class CameraHandler {
                     @Override
                     public boolean test(KParams params) {
                         int closeResult = params.get(KParams.Key.CLOSE_CAMERA_STATUS, KParams.Value.CLOSE_STATE.DEVICE_NULL);
-                        KLog.d("open camera before close, closeResult <1>: " + closeResult + " use time:" + (System.currentTimeMillis() - openTime));
+                        KLog.d(TAG,"open camera before close, closeResult <1>: " + closeResult + " use time:" + (System.currentTimeMillis() - openTime));
                         return closeResult == KParams.Value.CLOSE_STATE.DEVICE_CLOSED_RUNNABLE_PUSH_HANDLER;
                     }
                 }).flatMap((Function<KParams, ObservableSource<KParams>>) params -> {
                     int closeResult = params.get(KParams.Key.CLOSE_CAMERA_STATUS, KParams.Value.CLOSE_STATE.DEVICE_NULL);
-                    KLog.d("open camera before close, closeResult : <2>" + closeResult + " use time:" + (System.currentTimeMillis() - openTime));
+                    KLog.d(TAG,"open camera before close, closeResult : <2>" + closeResult + " use time:" + (System.currentTimeMillis() - openTime));
                     return mCameraBusiness.openCamera(openParams);
                 }).subscribe(new CameraObserver<KParams>() {
                     @Override
                     public void onNext(@NonNull KParams resultParams) {
-                        KLog.i("open camera result params:\n" + resultParams);
+                        KLog.i(TAG,"open camera result params:\n" + resultParams);
                         Integer afState = resultParams.get(KParams.Key.AF_STATE);
                         synchronized (lockObj) {
                             if (afState != null && mCameraStateListener != null) {
@@ -127,7 +135,7 @@ public class CameraHandler {
                                     isOpening = false;
                                 }
                                 // 第一帧图像数据返回
-                                KLog.i("time:first frame use time:" + (System.currentTimeMillis() - openTime));
+                                KLog.i(TAG,"time:first frame use time:" + (System.currentTimeMillis() - openTime));
                                 mCameraStateListener.onFirstFrameCallback();
                             }
                         }
@@ -152,11 +160,11 @@ public class CameraHandler {
     public final synchronized void onCameraRepeating(@NonNull RepeatRequest request) {
 
         if (mCameraId == null) {
-            KLog.e("camera id is null , check camera is closed ");
+            KLog.e(TAG,"camera id is null , check camera is closed ");
             return;
         }
 
-        KParams configParams = new KParams();
+        KParams configParams = createParams();
         configParams.put(KParams.Key.CAMERA_ID, mCameraId.ID);
         Float zoomSize = request.getZoomSize();
         if (zoomSize != null) {
@@ -182,7 +190,7 @@ public class CameraHandler {
             configParams.put(KParams.Key.EV_SIZE, ev);
         }
 
-        Pair<Float, Float> afTouchXy = request.getAfTouchXY();
+        Pair<Pair<Float, Float>, Size>  afTouchXy = request.getAfTouchXY();
         if (afTouchXy != null) {
             // 设置对焦区域
             configParams.put(KParams.Key.AF_TRIGGER, afTouchXy);
@@ -196,7 +204,7 @@ public class CameraHandler {
 
         configParams.put(KParams.Key.RESET_FOCUS, request.isResetFocus());
 
-        KLog.d("CameraRepeating==>" + configParams);
+        KLog.d(TAG,"CameraRepeating==>" + configParams);
 
         mCameraBusiness.configCamera(configParams).subscribe(new CameraObserver<>());
     }
@@ -208,14 +216,14 @@ public class CameraHandler {
         synchronized (lockObj) {
             mCameraStateListener = null;
         }
-        KParams closeParams = new KParams();
+        KParams closeParams = createParams();
         closeParams.put(KParams.Key.OPEN_CAMERA_SIGN, mOpenCameraSign);
         mCameraBusiness.closeCamera(closeParams)
                 .filter(new Predicate<KParams>() {
                     @Override
                     public boolean test(KParams params) {
                         int closeResult = params.get(KParams.Key.CLOSE_CAMERA_STATUS, KParams.Value.CLOSE_STATE.DEVICE_NULL);
-                        KLog.d("close camera device closeResult : " + closeResult );
+                        KLog.d(TAG,"close camera device closeResult : " + closeResult );
                         return closeResult != KParams.Value.CLOSE_STATE.DEVICE_CLOSED_RUNNABLE_PUSH_HANDLER;
                     }
                 }).subscribe(new CameraObserver<KParams>() {
@@ -247,11 +255,11 @@ public class CameraHandler {
 
         if (mCameraId == null) {
             listener.onCaptureFailed();
-            KLog.e("capture fail ===>");
+            KLog.e(TAG,"capture fail ===>");
             return;
         }
 
-        KParams captureParams = new KParams();
+        KParams captureParams = createParams();
         captureParams.put(KParams.Key.CAMERA_ID, mCameraId.ID);
         captureParams.put(KParams.Key.CAPTURE_CAN_TRIGGER_AF, mConfig.getConfig().captureCanTriggerAf());
         int sensorOrientation = mCameraInfoManager.getSensorOrientation();
@@ -265,7 +273,7 @@ public class CameraHandler {
         mCameraBusiness.capture(captureParams).subscribe(new CameraObserver<KParams>(){
             @Override
             public void onNext(@NonNull KParams resultParams) {
-                KLog.i("capture result params :" + resultParams);
+                KLog.i(TAG,"capture result params :" + resultParams);
 
                 if (listener == null) {
                     return;
@@ -291,5 +299,11 @@ public class CameraHandler {
                 }
             }
         });
+    }
+
+    private KParams createParams() {
+        KParams kParams = new KParams();
+        kParams.put(KParams.Key.DISPLAY_ROTATION, mDisplayRotation);
+        return kParams;
     }
 }

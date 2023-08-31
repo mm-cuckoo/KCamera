@@ -17,6 +17,7 @@ import java.util.Map;
 import io.reactivex.annotations.NonNull;
 
 public class KParams {
+    private static final String TAG = "KParams";
     private final Map<Key<?>, Object> mMapObject = new HashMap<>();
 
     public KParams(){}
@@ -147,8 +148,9 @@ public class KParams {
         public static final Key<Integer> FLASH_STATE = new Key<>("camera_flash_value");
         public static final Key<Integer> EV_SIZE = new Key<>("ev_size");
         public static final Key<Float> FOCAL_LENGTH = new Key<>("focal_length");
-        public static final Key<Pair<Float, Float>> AF_TRIGGER = new Key<>("af_trigger");// Pair<X, Y>
+        public static final Key<Pair<Pair<Float, Float>, Size>> AF_TRIGGER = new Key<>("af_trigger");// Pair<Pair<X, Y>, TouchViewSize>
         public static final Key<Boolean> RESET_FOCUS = new Key<>("reset_focus");
+        public static final Key<Integer> DISPLAY_ROTATION = new Key<>("display_rotation");
 
         public static final Key<Long> OPEN_CAMERA_SIGN = new Key<>("open_camera_sign");
         public static final Key<Integer> CLOSE_CAMERA_STATUS = new Key<>("close_camera_status"); // 1 close device , 0 device null

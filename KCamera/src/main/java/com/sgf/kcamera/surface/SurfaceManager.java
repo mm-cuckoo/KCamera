@@ -19,6 +19,8 @@ import java.util.List;
  */
 public class SurfaceManager {
 
+    private static final String TAG = "SurfaceManager";
+
     private final List<Surface> mCaptureSurface;
     private final List<Surface> mPreviewSurface;
     private final List<SurfaceProvider> mSurfaceProviders;
@@ -35,7 +37,7 @@ public class SurfaceManager {
     }
 
     public void setPreviewSurfaceProviderList(List<PreviewSurfaceProvider> previewSurfaceProviders) {
-        KLog.d(" set ===surface ===>");
+        KLog.d(TAG,"set ===surface ===>");
         this.mPreviewSurfaceProviders = previewSurfaceProviders;
     }
 
@@ -68,7 +70,7 @@ public class SurfaceManager {
         List<Surface> surfaceList = new ArrayList<>(mCaptureSurface);
         surfaceList.addAll(getPreviewSurface());
         if (surfaceList.size() == 0) {
-            KLog.w("getTotalSurface surface list size is 0");
+            KLog.w(TAG,"getTotalSurface surface list size is 0");
         }
         return surfaceList;
     }
@@ -108,7 +110,7 @@ public class SurfaceManager {
      * 如果没有设置预览Surface ， 表示无预览，返回true
      */
     public boolean isSurfaceAvailable() {
-        KLog.d("isAvailable===>");
+        KLog.d(TAG,"isAvailable===>");
         boolean isAvailable = true;
         for (int i = 0;i < mPreviewSurfaceProviders.size(); i ++) {
             PreviewSurfaceProvider surfaceProvider = mPreviewSurfaceProviders.get(i);
@@ -118,7 +120,7 @@ public class SurfaceManager {
 
             if (BuildConfig.DEBUG) {
                 if (!isAvailable) {
-                    KLog.e("surface unavailable index :" + i  + "  total size:"  + mPreviewSurfaceProviders.size());
+                    KLog.e(TAG,"surface unavailable index :" + i  + "  total size:"  + mPreviewSurfaceProviders.size());
                 }
             }
         }
@@ -126,7 +128,7 @@ public class SurfaceManager {
     }
 
     public void release() {
-        KLog.i("release===>");
+        KLog.i(TAG,"release===>");
         for (SurfaceProvider provider : mSurfaceProviders) {
             provider.release();
         }

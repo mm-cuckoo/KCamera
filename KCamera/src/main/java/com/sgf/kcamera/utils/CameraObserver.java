@@ -9,6 +9,7 @@ import io.reactivex.annotations.NonNull;
 import io.reactivex.disposables.Disposable;
 
 public class CameraObserver<T> implements Observer<T> {
+    private static final String TAG = "CameraObserver";
     @Override
     public void onSubscribe(@NonNull Disposable d) {
 
@@ -21,7 +22,7 @@ public class CameraObserver<T> implements Observer<T> {
 
     @Override
     public void onError(@NonNull Throwable e) {
-        KLog.e(e.getMessage());
+        KLog.e(TAG, e.getMessage());
         e.printStackTrace();
         if (BuildConfig.DEBUG) {
             throw new RuntimeException(e);

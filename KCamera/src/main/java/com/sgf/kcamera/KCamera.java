@@ -22,6 +22,8 @@ import io.reactivex.annotations.NonNull;
  * 对外通过该实例进行打开， 关闭，拍照等操作
  */
 public class KCamera {
+    private static final String TAG = "KCamera";
+
     private final CaptureRequest DEF_CAPTURE_REQUEST = new CaptureRequest.Builder().builder();
     private final CameraHandler mCameraHandler;
     private final CameraInfoManager mCameraInfoManager;
@@ -34,8 +36,8 @@ public class KCamera {
         // 加载camera 信息
         CameraInfoHelper.getInstance().load(context, WorkerHandlerManager.getHandler(WorkerHandlerManager.Tag.T_TYPE_DATA));
         // 相机camera 操作
-        mCameraHandler = new CameraHandler(context.getApplicationContext(), new ConfigWrapper(strategy));
-        mCameraInfoManager = CameraInfoManagerImpl.CAMERA_INFO_MANAGER;
+        this.mCameraHandler = new CameraHandler(context.getApplicationContext(), new ConfigWrapper(strategy));
+        this.mCameraInfoManager = CameraInfoManagerImpl.CAMERA_INFO_MANAGER;
     }
 
     public final void openCamera(@NonNull PreviewRequest request, final CameraStateListener listener) {
@@ -116,9 +118,9 @@ public class KCamera {
         mCameraHandler.onCameraRepeating(builder.builder());
     }
 
-    public final void setFocus(float touchX, float touchY) {
+    public final void setFocus(float touchX, float touchY, int afTouchViewWidth, int afTouchViewHeight) {
         RepeatRequest.Builder builder = RepeatRequest.createBuilder();
-        builder.setAfTouchXY(touchX, touchY);
+        builder.setAfTouchXY(touchX, touchY, afTouchViewWidth, afTouchViewHeight);
         mCameraHandler.onCameraRepeating(builder.builder());
     }
 

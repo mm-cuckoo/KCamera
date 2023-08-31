@@ -31,6 +31,8 @@ import io.reactivex.Scheduler;
  * */
 public class KCameraDeviceImpl implements KCameraDevice {
 
+    private static final String TAG = "KCameraDeviceImpl";
+
     private static final Semaphore CAMERA_LOCK = new Semaphore(1, true);
     private static final long CAMERA_LOCK_TIMEOUT = 6000;
 
@@ -71,28 +73,28 @@ public class KCameraDeviceImpl implements KCameraDevice {
     }
 
     private static boolean tryRequestLock(String from) throws InterruptedException {
-        KLog.i( "requestLock with timeout ====>from:" + from);
+        KLog.i( TAG,"requestLock with timeout ====>from:" + from);
         if (!CAMERA_LOCK.tryAcquire(CAMERA_LOCK_TIMEOUT, TimeUnit.MILLISECONDS)) {
-            KLog.e("Time out waiting to lock camera opening");
+            KLog.e(TAG,"Time out waiting to lock camera opening");
             return false;
         }
-        KLog.i( "requestLock with timeout ====>end:from:" + from);
+        KLog.i(TAG, "requestLock with timeout ====>end:from:" + from);
         isLock.set(true);
         return true;
     }
 
     private static void requestLock(String from) throws InterruptedException {
-        KLog.i( "requestLock====>from:" + from);
+        KLog.i(TAG, "requestLock====>from:" + from);
         CAMERA_LOCK.acquire();
         isLock.set(true);
     }
 
     private static synchronized void releaseLock(String from) {
-        KLog.i( "releaseLock====>from:" + from + " isLock:" + isLock.get());
+        KLog.i( TAG,"releaseLock====>from:" + from + " isLock:" + isLock.get());
         if (isLock.get()) {
             isLock.set(false);
             CAMERA_LOCK.release();
-            KLog.i( "releaseLock====>from:" + from + " Permits:" + CAMERA_LOCK.availablePermits());
+            KLog.i( TAG,"releaseLock====>from:" + from + " Permits:" + CAMERA_LOCK.availablePermits());
         }
     }
 
@@ -116,7 +118,7 @@ public class KCameraDeviceImpl implements KCameraDevice {
                         boolean isLock = tryRequestLock("open_camera_start");
                         if (isLock) {
                             mOpenSignMap.put(cameraId, openSign);
-                            KLog.i( "handler open camera , " +
+                            KLog.i(TAG, "handler open camera , " +
                                     "  camera id :" + cameraId +
                                     "  sign:" + openSign +
                                     "  params:" + ocp);
@@ -125,10 +127,10 @@ public class KCameraDeviceImpl implements KCameraDevice {
                                 @Override
                                 public void onOpened(@NonNull CameraDevice camera) {
                                     long openUseTime = System.currentTimeMillis() - openStartTime;
-                                    KLog.i("time:open camera use time :" + openUseTime);
+                                    KLog.i(TAG,"time:open camera use time :" + openUseTime);
                                     // 保存当前打开的camera device
                                     mDeviceMap.put(camera.getId(), camera);
-                                    KLog.i( "camera opened ==》camera id: "  + camera.getId()  + "  sign:" + openSign + "  " + camera.hashCode());
+                                    KLog.i(TAG, "camera opened ==》camera id: "  + camera.getId()  + "  sign:" + openSign + "  " + camera.hashCode());
                                     ocp.put(KParams.Key.CAMERA_DEVICE, camera);
                                     ocp.put(KParams.Key.OPEN_CAMERA_STATE, KParams.Value.CAMERA_OPEN_SUCCESS);
                                     ocp.put(KParams.Key.OPEN_CAMERA_SIGN, openSign);
@@ -138,7 +140,7 @@ public class KCameraDeviceImpl implements KCameraDevice {
 
                                 @Override
                                 public void onDisconnected(@NonNull CameraDevice camera) {
-                                    KLog.e("onDisconnected: sign:" + openSign);
+                                    KLog.e(TAG,"onDisconnected: sign:" + openSign);
                                     camera.close();
                                     releaseLock("onDisconnected");
                                     emitter.onError(new KException("camera onDisconnected:", KException.CODE_CAMERA_DISCONNECTED));
@@ -146,7 +148,7 @@ public class KCameraDeviceImpl implements KCameraDevice {
 
                                 @Override
                                 public void onError(@NonNull CameraDevice camera, int error) {
-                                    KLog.e("onError: code:" + error);
+                                    KLog.e(TAG,"onError: code:" + error);
                                     camera.close();
                                     releaseLock("onError");
                                     emitter.onError(new KException("camera onError code:", error));
@@ -154,7 +156,7 @@ public class KCameraDeviceImpl implements KCameraDevice {
 
                                 @Override
                                 public void onClosed(@NonNull CameraDevice camera) {
-                                    KLog.e("camera closed"+ camera.hashCode());
+                                    KLog.e(TAG,"camera closed"+ camera.hashCode());
                                 }
                             }, mCameraRunner);
 
@@ -170,15 +172,15 @@ public class KCameraDeviceImpl implements KCameraDevice {
                         }
                     } catch (Exception e) {
                         releaseLock("open_camera_exception");
-                        KLog.e("open camera Exception :" + Arrays.toString(e.getStackTrace()));
+                        KLog.e(TAG,"open camera Exception :" + Arrays.toString(e.getStackTrace()));
                     } finally {
-                        KLog.i("open camera method end");
+                        KLog.i(TAG,"open camera method end");
                     }
                 }
             });
             message.what = openSign.intValue();
             mCameraHandler.sendMessage(message);
-            KLog.i("push open camera runnable to handler what:" + message.what + "  camera id:" + cameraId + "  sign:" + openSign);
+            KLog.i(TAG,"push open camera runnable to handler what:" + message.what + "  camera id:" + cameraId + "  sign:" + openSign);
         });
     }
 
@@ -186,7 +188,7 @@ public class KCameraDeviceImpl implements KCameraDevice {
     public CameraDevice getCameraDevice(KParams params) {
         final String cameraId = params.get(KParams.Key.CAMERA_ID);
         CameraDevice device = mDeviceMap.get(cameraId);
-        KLog.i("getCameraDevice ===> camera id:" + cameraId + "  " + device);
+        KLog.i(TAG,"getCameraDevice ===> camera id:" + cameraId + "  " + device);
         return device;
     }
 
@@ -198,13 +200,13 @@ public class KCameraDeviceImpl implements KCameraDevice {
 
            // 当 openCameraSign 为 0 时会清掉打开相机中所有准备执行打开相机的任务
             if (closeCameraSign == 0L) {
-                KLog.i("remove all handler open camera runnable");
+                KLog.i(TAG,"remove all handler open camera runnable");
                 mCameraHandler.removeCallbacksAndMessages(null);
             }
 
             int handlerWhat = closeCameraSign.intValue();
             if (mCameraHandler.hasMessages(handlerWhat)) {
-                KLog.e("remove handler open camera runnable what:" + handlerWhat);
+                KLog.e(TAG,"remove handler open camera runnable what:" + handlerWhat);
                 mCameraHandler.removeMessages(handlerWhat);
                 KParams param = new KParams();
                 param.put(KParams.Key.CLOSE_CAMERA_STATUS, KParams.Value.CLOSE_STATE.DEVICE_CLOSED_REMOVE_OPEN_RUNNABLE);
@@ -220,14 +222,14 @@ public class KCameraDeviceImpl implements KCameraDevice {
                             if (openCameraSign == null) {
                                 openCameraSign = 0L;
                             }
-                            KLog.i("start close" +
+                            KLog.i(TAG,"start close" +
                                     "  camera id " + cameraId +
                                     "  close sign:" + closeCameraSign +
                                     "  open sign:" + openCameraSign +
                                     "  params:" + cp);
 
                             if (closeCameraSign == 0L && cameraId == null) {
-                                KLog.i("close all device start , size:" + mDeviceMap.size());
+                                KLog.i(TAG,"close all device start , size:" + mDeviceMap.size());
                                 // 关闭所有已经打开的device
                                 for (CameraDevice device : mDeviceMap.values()) {
                                     device.close();
@@ -237,18 +239,18 @@ public class KCameraDeviceImpl implements KCameraDevice {
                                 KParams param = new KParams();
                                 param.put(KParams.Key.CLOSE_CAMERA_STATUS, KParams.Value.CLOSE_STATE.DEVICE_CLOSED_ALL_DEVICE);
                                 emitter.onNext(param);
-                                KLog.i("close all device end");
+                                KLog.i(TAG,"close all device end");
                             } else if (closeCameraSign != 0L && !closeCameraSign.equals(openCameraSign)) {
                                 /*
                                  * 每次相机打开都会生成一个sign, 关闭的时候会使用打开的时候生成的sign和当前打开的相机的sign进行对比，
                                  * 如果两个sign不相同，则认为当前已经打开的device已经是在新的应用中打开的，也就不需要进行关闭
                                  */
-                                KLog.e("close camera device check sign fail");
+                                KLog.e(TAG,"close camera device check sign fail");
                                 KParams param = new KParams();
                                 param.put(KParams.Key.CLOSE_CAMERA_STATUS, KParams.Value.CLOSE_STATE.DEVICE_CLOSED_CHECK_SIGN_FAIL);
                                 emitter.onNext(param);
                             } else {
-                                KLog.i("close single camera device start ++++++ ");
+                                KLog.i(TAG,"close single camera device start ++++++ ");
                                 int closeResult = KParams.Value.CLOSE_STATE.DEVICE_NULL;
                                 CameraDevice cameraDevice = null;
                                 if (mDeviceMap.containsKey(cameraId)) {
@@ -259,17 +261,17 @@ public class KCameraDeviceImpl implements KCameraDevice {
                                     cameraDevice.close();
                                     mOpenSignMap.remove(cameraId);
                                     closeResult = KParams.Value.CLOSE_STATE.DEVICE_CLOSED;
-                                    KLog.i("close camera device : id :" + cameraId);
+                                    KLog.i(TAG,"close camera device : id :" + cameraId);
                                 }
 
                                 KParams param = new KParams();
                                 param.put(KParams.Key.CLOSE_CAMERA_STATUS, closeResult);
                                 emitter.onNext(param);
-                                KLog.i("close single camera device end +++++++");
+                                KLog.i(TAG,"close single camera device end +++++++");
 
                             }
                         } catch (Exception e) {
-                            KLog.e("close camera device exception =======");
+                            KLog.e(TAG,"close camera device exception =======");
                             e.printStackTrace();
                             KParams param = new KParams();
                             param.put(KParams.Key.CLOSE_CAMERA_STATUS, KParams.Value.CLOSE_STATE.DEVICE_CLOSED_EXCEPTION);
@@ -277,12 +279,12 @@ public class KCameraDeviceImpl implements KCameraDevice {
                         } finally {
                             releaseLock("close_camera_end");
                         }
-                        KLog.i("end close camera method ");
+                        KLog.i(TAG,"end close camera method ");
                     }
                 });
                 message.what = 0;
                 mCameraHandler.sendMessage(message);
-                KLog.d("push close runnable to handler openSign:" + closeCameraSign);
+                KLog.d(TAG,"push close runnable to handler openSign:" + closeCameraSign);
                 KParams param = new KParams();
                 param.put(KParams.Key.CLOSE_CAMERA_STATUS, KParams.Value.CLOSE_STATE.DEVICE_CLOSED_RUNNABLE_PUSH_HANDLER);
                 emitter.onNext(param);

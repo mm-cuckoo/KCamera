@@ -10,9 +10,10 @@ import com.sgf.kcamera.log.KLog;
 import java.util.Arrays;
 
 public class DefaultConfigStrategy implements ConfigStrategy {
+    private static final String TAG = "DefaultConfigStrategy";
     @Override
     public Size getPreviewSize(@NonNull CameraID cameraID, @NonNull Size size, @NonNull Size[] supportSizes) {
-        KLog.d("getPreviewSize: size:" + size  + "   supportSize:" + Arrays.toString(supportSizes));
+        KLog.d(TAG,"getPreviewSize: size:" + size  + "   supportSize:" + Arrays.toString(supportSizes));
         Size resultSize = null;
         Size sizeTmp = size;
         for (Size size1 : supportSizes) {
@@ -37,7 +38,7 @@ public class DefaultConfigStrategy implements ConfigStrategy {
 
     @Override
     public Size getPictureSize(@NonNull CameraID cameraID, @NonNull Size size, @NonNull Size[] supportSizes) {
-        KLog.d( "getPictureSize: size:" + size  + "   supportSize:" + Arrays.toString(supportSizes));
+        KLog.d(TAG, "getPictureSize: size:" + size  + "   supportSize:" + Arrays.toString(supportSizes));
         Size resultSize = null;
         Size sizeTmp = size;
         for (Size size1 : supportSizes) {
@@ -56,13 +57,13 @@ public class DefaultConfigStrategy implements ConfigStrategy {
         if (resultSize == null) {
             resultSize = sizeTmp;
         }
-        KLog.d("getPictureSize: return picture size:" + resultSize);
+        KLog.d(TAG,"getPictureSize: return picture size:" + resultSize);
         return resultSize;
     }
 
     @Override
     public int getPictureOrientation(@NonNull CameraID cameraID, int cameraSensorOrientation) {
-        KLog.d("cameraSensorOrientation: " + cameraSensorOrientation);
+        KLog.d(TAG,"cameraSensorOrientation: " + cameraSensorOrientation);
         return cameraSensorOrientation;
     }
 

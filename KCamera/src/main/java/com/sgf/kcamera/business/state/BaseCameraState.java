@@ -10,6 +10,8 @@ import io.reactivex.ObservableOnSubscribe;
 
 abstract class BaseCameraState implements CameraState {
 
+    private static final String TAG = "BaseCameraState";
+
     final CameraStateMachine mStateMachine;
     final CameraSessionWrapper mCameraSessionWap;
 
@@ -33,7 +35,7 @@ abstract class BaseCameraState implements CameraState {
         if (isActive()) {
             onChangeState(mNextState);
         } else {
-            KLog.i("camera state change , current state :" + mStateMachine.getState().getClass().getSimpleName());
+            KLog.i(TAG,"camera state change , current state :" + mStateMachine.getState().getClass().getSimpleName());
         }
     }
 

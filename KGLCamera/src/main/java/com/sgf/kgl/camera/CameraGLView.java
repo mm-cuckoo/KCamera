@@ -14,6 +14,8 @@ import com.sgf.kcamera.log.KLog;
 
 public class CameraGLView extends GLView {
 
+    private static final String TAG = "CameraGLView";
+
     private final Point screenPoint;
     private Size mCameraPreviewSize;
     public CameraGLView(@NonNull Context context) {
@@ -39,7 +41,7 @@ public class CameraGLView extends GLView {
             setMeasuredDimension(width, height);
         } else {
             Size dstSize = getScalingSize(getCameraPreviewSize(), getReferenceSize());
-            KLog.d("onMeasure:dstSize:" + dstSize);
+            KLog.d(TAG,"onMeasure:dstSize:" + dstSize);
             setMeasuredDimension(dstSize.getWidth(), dstSize.getHeight());
         }
 
@@ -50,7 +52,7 @@ public class CameraGLView extends GLView {
             throw new IllegalArgumentException("Size cannot be negative.");
         }
         mCameraPreviewSize = new Size(width, height);
-        KLog.d("=====>width : " + width + " height:" + height);
+        KLog.d(TAG,"=====>width : " + width + " height:" + height);
         requestLayout();
     }
 
@@ -83,14 +85,14 @@ public class CameraGLView extends GLView {
         int refH = referenceSize.getHeight();
         double dstW = refW;
         double dstH = (double) refW * (double)previewSize.getHeight() / (double)previewSize.getWidth();
-        KLog.d("getScalingSize-->dstW:"  + dstW + "  dstH:" + dstH);
+        KLog.d(TAG,"getScalingSize-->dstW:"  + dstW + "  dstH:" + dstH);
 
         if (dstH > refH) {
             dstH = refH;
             dstW = (double)previewSize.getWidth() * (double)refH / (double)previewSize.getHeight();
         }
-        KLog.d("getScalingSize-r->dstW:"  + dstW + "  dstH:" + dstH);
-        KLog.d("getScalingSize-->previewSize::" + previewSize  + "  referenceSize::" + referenceSize);
+        KLog.d(TAG,"getScalingSize-r->dstW:"  + dstW + "  dstH:" + dstH);
+        KLog.d(TAG,"getScalingSize-->previewSize::" + previewSize  + "  referenceSize::" + referenceSize);
         return new Size((int) dstW, (int) dstH);
     }
 }

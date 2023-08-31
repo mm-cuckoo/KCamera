@@ -7,6 +7,8 @@ import com.sgf.kcamera.log.KLog;
 import io.reactivex.Observable;
 
 public class PreviewState extends BaseCameraState{
+    private static final String TAG = "PreviewState";
+
     public PreviewState(CameraStateMachine stateMachine, CameraSessionWrapper cameraSessionWrapper) {
         super(stateMachine, cameraSessionWrapper);
     }
@@ -16,7 +18,7 @@ public class PreviewState extends BaseCameraState{
         return mCameraSessionWap.onStartPreview(previewParams).doOnNext(resultParams -> {
             String firstFrame = resultParams.get(KParams.Key.PREVIEW_FIRST_FRAME);
             if (KParams.Value.OK.equals(firstFrame)) {
-                KLog.d("preview state change");
+                KLog.d(TAG,"preview state change");
                 onChangeState();
             }
         });

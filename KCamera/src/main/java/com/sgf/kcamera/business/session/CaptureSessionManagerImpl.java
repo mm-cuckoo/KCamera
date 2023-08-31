@@ -1,10 +1,13 @@
 package com.sgf.kcamera.business.session;
 
+import android.content.res.Configuration;
+import android.graphics.Rect;
 import android.hardware.camera2.CameraAccessException;
 import android.hardware.camera2.CameraDevice;
 import android.hardware.camera2.CaptureRequest;
 import android.hardware.camera2.params.MeteringRectangle;
 import android.util.Pair;
+import android.util.Size;
 import android.view.Surface;
 
 import com.sgf.kcamera.KCustomerRequestStrategy;
@@ -27,6 +30,7 @@ import io.reactivex.ObservableOnSubscribe;
  * 管理 session
  */
 public class CaptureSessionManagerImpl extends BaseCaptureSessionManager {
+    private static final String TAG = "CaptureSessionManagerImpl";
 
     private final PreviewCallback mPreviewCaptureCallback;
     private final CaptureCallback mCaptureCallback;
@@ -44,7 +48,7 @@ public class CaptureSessionManagerImpl extends BaseCaptureSessionManager {
         mCameraInfoManager = CameraInfoManagerImpl.CAMERA_INFO_MANAGER;
         mSessionRequestManager = new SessionRequestManager(mCameraInfoManager);
         mZoomHelper = new ZoomHelper(mCameraInfoManager);
-        mFocusHelper = new FocusHelper(mCameraInfoManager);
+        mFocusHelper = new FocusHelper();
     }
 
 
@@ -84,7 +88,11 @@ public class CaptureSessionManagerImpl extends BaseCaptureSessionManager {
     }
 
     private void applyPreviewRequest(CaptureRequest.Builder builder, KParams requestParams) {
-        mSessionRequestManager.applyZoomRect(builder, mZoomHelper.getZoomRect(requestParams.get(KParams.Key.ZOOM_VALUE, 0f)));// zoom
+        int orientation = requestParams.get(KParams.Key.DISPLAY_ROTATION, Configuration.ORIENTATION_PORTRAIT);//获取方向，默认竖屏
+        mFocusHelper.setPreviewOrientation(orientation);
+        Rect zoomRect = mZoomHelper.getZoomRect(requestParams.get(KParams.Key.ZOOM_VALUE, 0f));
+        mFocusHelper.setZoomRect(zoomRect);
+        mSessionRequestManager.applyZoomRect(builder, zoomRect);// zoom
         mSessionRequestManager.applyFlashRequest(builder, requestParams.get(KParams.Key.FLASH_STATE));// flash
         mSessionRequestManager.applyEvRange(builder, requestParams.get(KParams.Key.EV_SIZE)); // ev
         mSessionRequestManager.applyFocalLength(builder, requestParams.get(KParams.Key.FOCAL_LENGTH)); // ev
@@ -105,7 +113,7 @@ public class CaptureSessionManagerImpl extends BaseCaptureSessionManager {
     public Observable<KParams> onRepeatingRequest(final KParams requestParams) {
 
         return Observable.create(emitter -> {
-            KLog.d("requestParams :" + requestParams);
+            KLog.d(TAG,"requestParams :" + requestParams);
             requestParams.put(KParams.Key.REQUEST_BUILDER, getPreviewBuilder());
             requestParams.put(KParams.Key.CAPTURE_CALLBACK, mPreviewCaptureCallback);
             flashRepeatingRequest(getPreviewBuilder(), requestParams);
@@ -136,14 +144,14 @@ public class CaptureSessionManagerImpl extends BaseCaptureSessionManager {
     }
 
     private void afTriggerRepeatingRequest(CaptureRequest.Builder builder, KParams requestParams) throws CameraAccessException {
-        Pair<Float, Float> afTriggerValue = requestParams.get(KParams.Key.AF_TRIGGER);
+        Pair<Pair<Float, Float>, Size> afTriggerValue = requestParams.get(KParams.Key.AF_TRIGGER);
         if (afTriggerValue == null) {
             return;
         }
-        MeteringRectangle focusRect = mFocusHelper.getAFArea(afTriggerValue.first, afTriggerValue.second);
-        MeteringRectangle meterRect = mFocusHelper.getAEArea(afTriggerValue.first, afTriggerValue.second);
+        MeteringRectangle afRect = mFocusHelper.getAFArea(afTriggerValue.first, afTriggerValue.second);
+        MeteringRectangle aeRect = mFocusHelper.getAEArea(afTriggerValue.first, afTriggerValue.second);
 
-        mSessionRequestManager.applyTouch2FocusRequest(getPreviewBuilder(), focusRect, meterRect);
+        mSessionRequestManager.applyTouch2FocusRequest(getPreviewBuilder(), afRect, aeRect);
         getCameraSession().onRepeatingRequest(requestParams);
         try {
             builder.set(CaptureRequest.CONTROL_AF_TRIGGER, CaptureRequest.CONTROL_AF_TRIGGER_START);
@@ -181,7 +189,9 @@ public class CaptureSessionManagerImpl extends BaseCaptureSessionManager {
         if (zoomValue == null) {
             return;
         }
-        mSessionRequestManager.applyZoomRect(builder, mZoomHelper.getZoomRect(zoomValue));
+        Rect zoomRect = mZoomHelper.getZoomRect(zoomValue);
+        mFocusHelper.setZoomRect(zoomRect);
+        mSessionRequestManager.applyZoomRect(builder, zoomRect);
         getCameraSession().onRepeatingRequest(requestParams);
     }
 
@@ -196,7 +206,7 @@ public class CaptureSessionManagerImpl extends BaseCaptureSessionManager {
 
     @Override
     public Observable<KParams> capture(final KParams captureParams) {
-        KLog.i("capture params:" + captureParams);
+        KLog.i(TAG,"capture params:" + captureParams);
         return Observable.create((ObservableOnSubscribe<KParams>) emitter -> {
             CaptureRequest.Builder builder = getCaptureBuilder();
             KCustomerRequestStrategy requestStrategy = captureParams.get(KParams.Key.CUSTOMER_REQUEST_STRATEGY);
@@ -209,7 +219,7 @@ public class CaptureSessionManagerImpl extends BaseCaptureSessionManager {
             mSessionRequestManager.applyAllRequest(builder);
             mCaptureCallback.prepareCapture(builder, emitter);
             boolean canTriggerAf = captureParams.get(KParams.Key.CAPTURE_CAN_TRIGGER_AF, true);
-            KLog.d("capture canTriggerAf :" + canTriggerAf);
+            KLog.d(TAG,"capture canTriggerAf :" + canTriggerAf);
             if (canTriggerAf && mCameraInfoManager.canTriggerAf()) {
                 mPreviewCaptureCallback.capture();
             } else {

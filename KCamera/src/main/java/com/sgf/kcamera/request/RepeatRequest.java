@@ -2,6 +2,7 @@ package com.sgf.kcamera.request;
 
 
 import android.util.Pair;
+import android.util.Size;
 
 import com.sgf.kcamera.KCustomerRequestStrategy;
 
@@ -10,7 +11,7 @@ public class RepeatRequest {
     private final Float mZoomSize;
     private final Float mFocalLength;
     private final Integer mFlashState;
-    private final Pair<Float, Float> mAfTouchXY;
+    private final Pair<Pair<Float, Float>, Size> mAfTouchXY;
     private final boolean mIsResetFocus;
     private final KCustomerRequestStrategy mKCustomerRequestStrategy;
 
@@ -40,7 +41,7 @@ public class RepeatRequest {
         return mFlashState;
     }
 
-    public Pair<Float, Float> getAfTouchXY() {
+    public Pair<Pair<Float, Float>, Size> getAfTouchXY() {
         return mAfTouchXY;
     }
 
@@ -61,7 +62,7 @@ public class RepeatRequest {
         private Integer mEv;
         private Float mZoomSize;
         private Float mFocalLength;
-        private Pair<Float, Float> mAfTouchXY;
+        private Pair<Pair<Float, Float>, Size> mAfTouchXY;
         private boolean mIsResetFocus = false;
         private KCustomerRequestStrategy mKCustomerRequestStrategy;
 
@@ -83,8 +84,8 @@ public class RepeatRequest {
             mFocalLength = value;
             return this;
         }
-        public Builder setAfTouchXY(float x, float y) {
-            mAfTouchXY = new Pair<>(x, y);
+        public Builder setAfTouchXY(float x, float y, int afTouchViewWidth, int afTouchViewHeight) {
+            mAfTouchXY = new Pair<>(new Pair<>(x, y), new Size(afTouchViewWidth, afTouchViewHeight));
             return this;
         }
 

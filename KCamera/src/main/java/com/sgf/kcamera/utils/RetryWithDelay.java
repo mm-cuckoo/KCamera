@@ -10,6 +10,7 @@ import io.reactivex.ObservableSource;
 import io.reactivex.functions.Function;
 
 public abstract class RetryWithDelay implements Function<Observable<Throwable>, ObservableSource<Long>> {
+    private static final String TAG = "RetryWithDelay";
     private final int retryDelayMillis;
     private final int retryMaxCount;
     private int retryCount;
@@ -23,10 +24,10 @@ public abstract class RetryWithDelay implements Function<Observable<Throwable>, 
         return throwableObservable.flatMap(new Function<Throwable, ObservableSource<Long>>() {
             @Override
             public ObservableSource<Long> apply(Throwable throwable) {
-                KLog.d("RetryWithDelay retry method ");
+                KLog.d(TAG,"RetryWithDelay retry method ");
                 if (throwable instanceof KException) {
                     int code = ((KException)throwable).code;
-                    KLog.i("RetryWithDelay retry ==retryCount=>" + retryCount + " msg:" + throwable.getMessage() + "  code:" + code);
+                    KLog.i(TAG,"RetryWithDelay retry ==retryCount=>" + retryCount + " msg:" + throwable.getMessage() + "  code:" + code);
                     if (checkRetry(code)) {
                         return Observable.timer(retryDelayMillis, TimeUnit.MILLISECONDS);
                     }

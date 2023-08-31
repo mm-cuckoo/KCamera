@@ -6,6 +6,9 @@ import com.sgf.kcamera.camera.info.CameraInfoManager;
 import com.sgf.kcamera.log.KLog;
 
 public class ZoomHelper {
+
+    private static final String TAG = "ZoomHelper";
+
     private final CameraInfoManager mCameraInfoManager;
 
     private int mMaxZoomValue;
@@ -25,7 +28,7 @@ public class ZoomHelper {
 //        mMinHeight = (int) (mZoomRect.height() / sensorMaxZoomValue);// 最小zoom高度
         int difW = mZoomRect.width() - minWidth; // zoom 范围， 宽度
         mCropStepWidth = difW / mMaxZoomValue;
-        KLog.d("init:mSensorMaxZoomValue :" + sensorMaxZoomValue + "  mMaxZoomValue:" + mMaxZoomValue + " mZoomRect:" + mZoomRect);
+        KLog.d(TAG,"init:mSensorMaxZoomValue :" + sensorMaxZoomValue + "  mMaxZoomValue:" + mMaxZoomValue + " mZoomRect:" + mZoomRect);
     }
 
     public Rect getZoomRect(float zoomValue) {
@@ -48,7 +51,7 @@ public class ZoomHelper {
 //        KLog.d("w:h:" + ((float)mZoomRect.width() / (float)mZoomRect.height())   + "   --> " + ((float)cropWidth ) / ((float)cropHeight) );
 //        KLog.d("cropWidthSize:" + cropWidthSize   + "   --> " + cropHeightSize );
         Rect zoom = new Rect(cropWidthSize, cropHeightSize, cropWidth + cropWidthSize, cropHeight + cropHeightSize);
-        KLog.i("zoom value :" + zoomValue  + " zoom rect:" + zoom);
+        KLog.i(TAG,"zoom value :" + zoomValue  + " zoom rect:" + zoom);
         return zoom;
     }
 }

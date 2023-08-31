@@ -24,6 +24,7 @@ import io.reactivex.ObservableSource;
 import io.reactivex.functions.Function;
 
 public abstract class BaseCaptureSessionManager implements CaptureSessionManager {
+    private static final String TAG = "BaseCaptureSessionManag";
 
     /**
      * 在这个抽象类中会维护一个 CameraSession {@link CameraSession} 供内部使用，
@@ -61,7 +62,7 @@ public abstract class BaseCaptureSessionManager implements CaptureSessionManager
     @Override
     public Observable<KParams> onOpenCamera(final KParams openParams) {
         return beforeOpenCamera(openParams).flatMap((Function<KParams, ObservableSource<KParams>>) params -> {
-            KLog.d("session open camera ===>");
+            KLog.d(TAG,"session open camera ===>");
             return mCameraSession.onOpenCamera(openParams);
         });
     }
@@ -132,7 +133,7 @@ public abstract class BaseCaptureSessionManager implements CaptureSessionManager
         CaptureRequest.Builder captureBuilder = null;
         try {
             captureBuilder = mCameraSession.onCreateRequestBuilder(templateType);
-            KLog.d("surface size: ||||||||||||||---->" + surfaceList.size());
+            KLog.d(TAG,"surface size: ||||||||||||||---->" + surfaceList.size());
             for (Surface surface : surfaceList) {
                 captureBuilder.addTarget(surface);
             }
