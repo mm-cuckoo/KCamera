@@ -104,8 +104,12 @@ class CameraActivity : AppCompatActivity() , CaptureStateListener,
                 orientationFilter.setOnceListener {
                     kCamera.resetFocus()
                 }
-                kCamera.setFocus(event.x, event.y, glPreview.width, glPreview.height)
-                focusView.moveToPosition(event.x, event.y)
+                if (cameraEnable) {
+                    kCamera.setFocus(event.x, event.y, glPreview.width, glPreview.height)
+                    focusView.moveToPosition(event.x, event.y)
+                } else {
+                    Toast.makeText(this, "设备没有 Ready ", Toast.LENGTH_SHORT).show()
+                }
             }
             true
         }
@@ -196,7 +200,20 @@ class CameraActivity : AppCompatActivity() , CaptureStateListener,
         findViewById<Button>(R.id.btn_capture_pic).setOnClickListener {
             if (cameraEnable) {
                 startPicTime = System.currentTimeMillis()
-                kCamera.takePic(this)
+                kCamera.takePic(object: CaptureStateListener {
+                    override fun onCaptureStarted() {
+
+                    }
+
+                    override fun onCaptureCompleted() {
+
+                    }
+
+                    override fun onCaptureFailed() {
+
+                    }
+
+                })
             } else {
                 Toast.makeText(this, "设备没有 Ready ", Toast.LENGTH_SHORT).show()
             }
